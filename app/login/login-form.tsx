@@ -76,7 +76,6 @@ export default function LoginForm() {
 
     try {
       const res = await LOGINUSER("/v1/auth/dashboard-login", data);
-      console.log(res)
       if (!res.success) {
         setError(res.message || "Invalid credentials");
         toast.error(res.message || "Invalid credentials");
