@@ -13,7 +13,7 @@ export default function HomeComponent() {
 
   return (
     <div className="flex min-h-screen  w-full items-center justify-center bg-background p-2 font-sans">
-      <div className="h-[calc(100vh-16px)] overflow-y-auto scroll-none w-full rounded-xl border bg-linear-to-br from-primary/5 via-transparent to-primary/10 shadow ">
+      <div className="h-[calc(100vh-16px)] overflow-y-auto scroll-none w-full rounded border bg-linear-to-br from-primary/5 via-transparent to-primary/10 shadow ">
         {/* ---------------- MAIN PAGE ---------------- */}
         <div className='scroll-none'>
           {!showLogin && (
@@ -77,7 +77,7 @@ export default function HomeComponent() {
 
     {/* RIGHT FEATURES */}
     <div className="grid gap-6 sm:grid-cols-2">
-      <div className="rounded-xl border bg-muted/40 p-5">
+      <div className="rounded border bg-muted/40 p-5">
         <BookOpen className="mb-3 h-6 w-6 text-primary" />
         <h3 className="font-semibold">Interactive Courses</h3>
         <p className="text-sm text-muted-foreground">
@@ -85,7 +85,7 @@ export default function HomeComponent() {
         </p>
       </div>
 
-      <div className="rounded-xl border bg-muted/40 p-5">
+      <div className="rounded border bg-muted/40 p-5">
         <BarChart3 className="mb-3 h-6 w-6 text-primary" />
         <h3 className="font-semibold">Progress Tracking</h3>
         <p className="text-sm text-muted-foreground">
@@ -93,7 +93,7 @@ export default function HomeComponent() {
         </p>
       </div>
 
-      <div className="rounded-xl border bg-muted/40 p-5">
+      <div className="rounded border bg-muted/40 p-5">
         <Users className="mb-3 h-6 w-6 text-primary" />
         <h3 className="font-semibold">Role-Based Access</h3>
         <p className="text-sm text-muted-foreground">
@@ -101,7 +101,7 @@ export default function HomeComponent() {
         </p>
       </div>
 
-      <div className="rounded-xl border bg-muted/40 p-5">
+      <div className="rounded border bg-muted/40 p-5">
         <ShieldCheck className="mb-3 h-6 w-6 text-primary" />
         <h3 className="font-semibold">Secure & Reliable</h3>
         <p className="text-sm text-muted-foreground">

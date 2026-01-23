@@ -88,7 +88,7 @@ export function TeamSwitcher() {
                   alt="LMS Logo"
                   width={32}
                   height={32}
-                  className="rounded-md"
+                  className="rounded"
                 />
               </div>
 
@@ -171,7 +171,7 @@ export function TeamSwitcher() {
                     <div
                       key={day}
                       className={cn(
-                        "flex h-7 items-center justify-center rounded-md",
+                        "flex h-7 items-center justify-center rounded",
                         isToday
                           ? "bg-primary text-primary-foreground font-medium shadow"
                           : "text-muted-foreground hover:bg-muted"
@@ -187,7 +187,7 @@ export function TeamSwitcher() {
 
             <DropdownMenuSeparator />
 
-            <DropdownMenuItem className="flex items-center justify-center rounded-lg p-1">
+            <DropdownMenuItem className="flex items-center justify-center rounded p-1">
               <span className="truncate text-xs text-muted-foreground">
                   Learing Management Platform
                 </span>

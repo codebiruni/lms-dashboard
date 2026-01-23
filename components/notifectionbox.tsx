@@ -41,18 +41,18 @@ export default function Notifectionbox() {
       <PopoverTrigger asChild>
         <Button
           variant="ghost"
-          className="relative p-2 rounded-full hover:bg-muted/20 transition-colors"
+          className="relative p-2 rounded hover:bg-muted/20 transition-colors"
         >
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
-            <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-destructive animate-pulse" />
+            <span className="absolute top-1 right-1 h-2 w-2 rounded bg-destructive animate-pulse" />
           )}
         </Button>
       </PopoverTrigger>
 
       <PopoverContent
         align="end"
-        className="w-80 rounded-lg border border-gray-300 bg-background p-0 shadow-lg"
+        className="w-80 rounded border border-gray-300 bg-background p-0 shadow-lg"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-300 ">

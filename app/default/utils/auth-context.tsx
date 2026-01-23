@@ -8,8 +8,10 @@ type ContextValue = {
   test: string;
   handleTest: (data: string) => void;
   UserData?: any;
+  profile?: any;
   handleUser: any;
   handleLogout?: any;
+  handleProfile?: any;
   callLogout?: boolean;
 };
 
@@ -22,6 +24,7 @@ type ContextProviderProps = {
 export default function AuthContext({ children }: ContextProviderProps) {
   const [test, setTest] = useState<string>("hello world");
   const [UserData, setUserData] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
   const [callLogout, setCallLogout] = useState<boolean>(false);
 
   useEffect(() => {
@@ -29,7 +32,7 @@ export default function AuthContext({ children }: ContextProviderProps) {
       try {
         const userinfo: any = await LogedUser();
         setUserData(userinfo);
-        console.log('user info - ', userinfo)
+        
       } catch (error) {
         console.error("Failed to load user:", error);
         setUserData(null);
@@ -47,6 +50,10 @@ export default function AuthContext({ children }: ContextProviderProps) {
     setCallLogout(data);
   };
 
+  const handleProfile = (data: string) => {
+    setProfile(data);
+  };
+
   const handleTest = (data: string) => {
     setTest(data);
   };
@@ -58,6 +65,8 @@ export default function AuthContext({ children }: ContextProviderProps) {
     handleUser,
     handleLogout,
     callLogout,
+    profile,
+    handleProfile
   };
 
   return <ContextData.Provider value={value}>{children}</ContextData.Provider>;

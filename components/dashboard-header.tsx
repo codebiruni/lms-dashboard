@@ -57,7 +57,7 @@ export default function DashboardHeader() {
     <header className="flex sticky top-0 z-30 h-14 items-center justify-between bg-background dark:bg-black border-b shadow-sm px-4 transition-all">
       {/* Left section */}
       <div className="flex items-center gap-4">
-        <SidebarTrigger className="hover:bg-muted/50 p-1 rounded-md transition-colors" />
+        <SidebarTrigger className="hover:bg-muted/50 p-1 rounded transition-colors" />
         <Separator orientation="vertical" className="h-6 border-muted-foreground" />
 
         <Breadcrumb>
@@ -72,7 +72,7 @@ export default function DashboardHeader() {
                     <BreadcrumbLink asChild>
                       <Link
                         href={href}
-                        className="flex items-center gap-1 px-2 py-1 rounded-md hover:bg-muted/20 transition-colors"
+                        className="flex items-center gap-1 px-2 py-1 rounded hover:bg-muted/20 transition-colors"
                         title={displayName}
                       >
                         {getIconForPart(part, index)}

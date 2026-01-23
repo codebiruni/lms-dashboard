@@ -11,11 +11,8 @@ const LOGINUSER = async (path: string, data: any) => {
     body: JSON.stringify(data),
     cache: "no-store",
   });
-  if (!res.ok) {
-    throw new Error(`POST ${path} failed with status ${res.status}`);
-  }
-
-  const resData = await res.json();
+  if (res.ok) {
+     const resData = await res.json();
   const token = resData.data.accessToken;
   const refreshToken = resData.data.refreshToken;
 
@@ -38,7 +35,12 @@ const LOGINUSER = async (path: string, data: any) => {
     path: "/",
   });
 
-  return resData;
+  return resData
+  }
+
+ 
+
+  return await res.json();
 };
 
 export default LOGINUSER;

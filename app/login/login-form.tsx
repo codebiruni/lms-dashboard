@@ -1,8 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
-import * as React from 'react'
 import { useForm } from 'react-hook-form'
-import { Eye, EyeOff, Lock, Mail } from 'lucide-react'
+import { Eye, EyeOff, Loader2, Lock, LogIn, Mail } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -16,6 +16,11 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
+import { useEffect, useState } from 'react'
+import LOGINUSER from '../default/functions/LoginUser'
+import { toast } from 'sonner'
+import useContextData from '../default/custom-component/useContextData'
+import { useRouter } from 'next/navigation'
 
 type LoginFormValues = {
   identifier: string
@@ -23,32 +28,8 @@ type LoginFormValues = {
   remember: boolean
 }
 
-export default function LoginForm() {
-  const [showPassword, setShowPassword] = React.useState(false)
-
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    formState: { errors },
-  } = useForm<LoginFormValues>()
-
-  /* ---------------- Load saved credentials ---------------- */
-  React.useEffect(() => {
-    const saved = localStorage.getItem('loginCredentials')
-    if (saved) {
-      const parsed = JSON.parse(saved)
-      setValue('identifier', parsed.identifier)
-      setValue('password', parsed.password)
-      setValue('remember', true)
-    }
-  }, [setValue])
-
-  /* ---------------- Submit ---------------- */
-  const onSubmit = (data: LoginFormValues) => {
-    console.log('Login Data:', data)
-
-    if (data.remember) {
+const saveLoginCreditional = (data:LoginFormValues) => {
+if (data.remember) {
       localStorage.setItem(
         'loginCredentials',
         JSON.stringify({
@@ -59,6 +40,70 @@ export default function LoginForm() {
     } else {
       localStorage.removeItem('loginCredentials')
     }
+}
+
+export default function LoginForm() {
+  const [showPassword, setShowPassword] = useState(false)
+  const {handleUser , handleProfile} = useContextData()
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<any>(null)
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    reset,
+    formState: { errors },
+  } = useForm<LoginFormValues>()
+
+  /* ---------------- Load saved credentials ---------------- */
+  useEffect(() => {
+    const saved = localStorage.getItem('loginCredentials')
+    if (saved) {
+      const parsed = JSON.parse(saved)
+      setValue('identifier', parsed.identifier)
+      setValue('password', parsed.password)
+      setValue('remember', true)
+    }
+  }, [setValue])
+
+  /* ---------------- Submit ---------------- */
+  const onSubmit = async(data: LoginFormValues) => {
+    saveLoginCreditional(data)
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const res = await LOGINUSER("/v1/auth/dashboard-login", data);
+      console.log(res)
+      if (!res.success) {
+        setError(res.message || "Invalid credentials");
+        toast.error(res.message || "Invalid credentials");
+      } else {
+        const user = res.data.user;
+        handleProfile(res.data.Profile)
+        handleUser({
+          _id: user._id,
+          id: user.id,
+          role: user.role,
+          name: user.name,
+          image: user.image,
+        });
+        toast.success("You have been logged in successfully");
+        reset();
+        if (user.role === 'admin') {
+         router.push("/dashboard"); 
+        }
+      }
+    } catch (err: any) {
+      console.log(err);
+      setError("An unexpected error occurred");
+      toast.error(err.message || "An unexpected error occurred");
+    } finally {
+      setIsLoading(false);
+    }
+    
   }
 
   return (
@@ -67,7 +112,7 @@ export default function LoginForm() {
       <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-transparent to-primary/10" />
 
       <CardHeader className="relative space-y-2 text-center">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded bg-primary/10">
           <Lock className="h-6 w-6 text-primary" />
         </div>
 
@@ -77,6 +122,10 @@ export default function LoginForm() {
         <CardDescription>
           Sign in to continue to your dashboard
         </CardDescription>
+        {error ? <CardDescription className='w-full p-1 bg-red-200 text-red-600 text-center'>
+          {error}
+        </CardDescription> : ""}
+        
       </CardHeader>
 
       <CardContent className="relative space-y-6">
@@ -156,9 +205,24 @@ export default function LoginForm() {
             </button>
           </div>
 
-          <Button size="lg" type="submit" className="w-full">
-            Sign In
-          </Button>
+          <Button
+  size="lg"
+  type="submit"
+  disabled={isLoading}
+  className="w-full flex items-center justify-center gap-2 transition-all"
+>
+  {isLoading ? (
+    <>
+      <Loader2 className="h-5 w-5 animate-spin" />
+      <span>Signing In...</span>
+    </>
+  ) : (
+    <>
+      <LogIn className="h-5 w-5" />
+      <span>Sign In</span>
+    </>
+  )}
+</Button>
         </form>
 
         <Separator />

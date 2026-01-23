@@ -5,6 +5,7 @@ import ThemeProvider from "./default/ThemeProvider";
 import { Toaster } from "sonner";
 import AuthContext from "./default/utils/auth-context";
 import TanStackProvider from "./default/wrapper/TanStackProvider";
+import Logout from "./default/utils/Logout";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,10 +34,11 @@ export default function RootLayout({
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AuthContext><Toaster />
-          <TanStackProvider>{children}</TanStackProvider>
-          
+          <TanStackProvider>
+            <Logout />
+            {children}
+            </TanStackProvider>
           </AuthContext>
-          
           </ThemeProvider>
       </body>
     </html>

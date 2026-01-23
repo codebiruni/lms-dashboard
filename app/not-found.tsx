@@ -20,7 +20,7 @@ export default function NotFound() {
         {/* LEFT: Illustration + Text */}
         <div className="space-y-6 text-center md:text-left">
           <div className="flex justify-center md:justify-start">
-            <div className="h-20 w-20 rounded-full bg-destructive/10 flex items-center justify-center">
+            <div className="h-20 w-20 rounded bg-destructive/10 flex items-center justify-center">
               <AlertCircle className="h-10 w-10 text-destructive" />
             </div>
           </div>
@@ -63,7 +63,7 @@ export default function NotFound() {
           <motion.img
             src="/404-illustration.jpg" 
             alt="Page not found illustration"
-            className="w-full rounded-2xl max-w-md"
+            className="w-full rounded max-w-md"
             initial={{ x: 50, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.6, ease: 'easeOut' }}
