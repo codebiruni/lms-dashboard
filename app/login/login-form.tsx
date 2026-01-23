@@ -150,7 +150,7 @@ export default function LoginForm() {
 
             <button
               type="button"
-              className="text-sm text-primary hover:underline"
+              className="text-sm hidden text-primary hover:underline"
             >
               Forgot password?
             </button>
