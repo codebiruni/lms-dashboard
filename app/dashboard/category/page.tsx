@@ -1,7 +1,10 @@
 import React from 'react'
+import AllCategory from './all-category'
 
 export default function page() {
   return (
-    <div>page</div>
+    <div className="py-6">
+      <AllCategory />
+    </div>
   )
 }
