@@ -1,10 +1,10 @@
 import React from 'react'
-import CreateSubCategory from './CreateSubCategory'
+import EditCategory from './EditCategory'
 
 export default function page() {
   return (
     <div className='py-6'>
-      <CreateSubCategory />
+        <EditCategory />
     </div>
   )
 }

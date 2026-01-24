@@ -1,5 +1,3 @@
-
-
 'use client'
 
 import { useEffect } from "react";
@@ -15,22 +13,3 @@ export default function Page() {
 
   return null; // No need to render anything
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -10,9 +10,14 @@ const PATCHDATA = async <T = any>(
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-  };
+  const isFormData = data instanceof FormData;
+
+  const headers: HeadersInit = {};
+
+   if (!isFormData) {
+    headers["Content-Type"] = "application/json";
+  }
+
 
   if (token) {
     headers["authorization"] = `Bearer ${token}`;
@@ -28,14 +33,6 @@ const PATCHDATA = async <T = any>(
     body: JSON.stringify(data),
     cache: "no-store",
   });
-
-
-  if (!res.ok) {
-    const errorText = await res.text().catch(() => res.statusText);
-    throw new Error(
-      `PATCH ${path} failed with status ${res.status}: ${errorText}`
-    );
-  }
 
   return res.json();
 };
