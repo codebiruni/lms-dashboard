@@ -1,7 +1,10 @@
 import React from 'react'
+import CreateStaff from './CreateStaff'
 
 export default function page() {
   return (
-    <div>page</div>
+    <div>
+      <CreateStaff />
+    </div>
   )
 }
