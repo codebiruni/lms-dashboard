@@ -4,15 +4,20 @@
 import { cookies } from "next/headers";
 
 const POSTDATA = async <T = any>(
-  path: string, 
-  data: any, 
+  path: string,
+  data: any
 ): Promise<T> => {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-  };
+  const isFormData = data instanceof FormData;
+
+  const headers: HeadersInit = {};
+
+  // ❗ Only set JSON header if NOT FormData
+  if (!isFormData) {
+    headers["Content-Type"] = "application/json";
+  }
 
   if (token) {
     headers["authorization"] = `Bearer ${token}`;
@@ -25,18 +30,9 @@ const POSTDATA = async <T = any>(
   const res = await fetch(url, {
     method: "POST",
     headers,
-    body: JSON.stringify(data),
+    body: isFormData ? data : JSON.stringify(data),
     cache: "no-store",
   });
-
-  
-
-  if (!res.ok) {
-    const errorText = await res.text().catch(() => res.statusText);
-    throw new Error(
-      `POST ${path} failed with status ${res.status}: ${errorText}`
-    );
-  }
 
   return res.json();
 };

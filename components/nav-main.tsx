@@ -28,7 +28,6 @@ export function NavMain() {
   const {UserData} = useContextData()
   const items = UserData?.role === 'admin' ? adminNavItems : instructorNavItems;
 
-  console.log(UserData)
 
   const isActive = (url: string) =>
     pathname === url || pathname.startsWith(url + "/");

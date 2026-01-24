@@ -7,9 +7,20 @@ import { GraduationCap, LogIn, ExternalLink, BookOpen, BarChart3, Users, ShieldC
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import LoginPage from '../login/login-page'
+import useContextData from './custom-component/useContextData'
+import { useRouter } from 'next/navigation'
 
 export default function HomeComponent() {
   const [showLogin, setShowLogin] = useState<boolean>(false)
+  const {UserData} = useContextData()
+  const router = useRouter()
+
+  if (UserData && UserData?.role === 'admin') {
+    router.push('/dashboard')
+  }
+  if (UserData && UserData?.role === 'instructor') {
+    router.push('/instructor')
+  }
 
   return (
     <div className="flex min-h-screen  w-full items-center justify-center bg-background p-2 font-sans">
