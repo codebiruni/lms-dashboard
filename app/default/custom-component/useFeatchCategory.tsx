@@ -13,7 +13,7 @@ type UseFetchCategoryParams = {
 
 export default function useFetchCategory({
   page = 1,
-  limit = 10,
+  limit = 100,
   search = "",
   deleted = false,
 }: UseFetchCategoryParams) {
