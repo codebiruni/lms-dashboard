@@ -37,7 +37,7 @@ import {
 
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
-import { Eye, Pencil, Trash2, User } from 'lucide-react'
+import { Eye, Pencil, RotateCcw, Trash2, User } from 'lucide-react'
 import Image from 'next/image'
 
 /* -------------------- Constants -------------------- */
@@ -274,7 +274,7 @@ export default function AllUserData() {
                     setOpen(true)
                   }}
                 >
-                  <Trash2 size={16} />
+                  {user.isDeleted ? <RotateCcw size={16} /> : <Trash2 size={16} />}
                 </Button>
               </TableCell>
             </TableRow>
