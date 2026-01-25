@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
-import  { useState } from 'react'
+import { useState } from 'react'
 import Image from 'next/image'
 
 import useFetchStaffs from '@/app/default/custom-component/useFeatchStaff'
@@ -43,28 +43,29 @@ import {
   User,
   PlusCircle,
   ClipboardList,
+  AlertTriangle,
 } from 'lucide-react'
-
-/* -------------------- Component -------------------- */
 
 export default function AllStaff() {
   /* ---------------- Filters ---------------- */
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
-  const [deleted, setDeleted] = useState<boolean | undefined>(false)
+  const [deleted, setDeleted] = useState<boolean>(false)
   const [sortOrder, setSortOrder] = useState<1 | -1>(-1)
 
-  /* ---------------- Selected Staff ---------------- */
+  /* ---------------- Selected ---------------- */
   const [selectedStaff, setSelectedStaff] = useState<any>(null)
 
   /* ---------------- Dialogs ---------------- */
-  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [softDeleteOpen, setSoftDeleteOpen] = useState(false)
+  const [hardDeleteOpen, setHardDeleteOpen] = useState(false)
   const [assignOpen, setAssignOpen] = useState(false)
   const [viewOpen, setViewOpen] = useState(false)
 
   /* ---------------- Lead form ---------------- */
   const [leadName, setLeadName] = useState('')
   const [leadDescription, setLeadDescription] = useState('')
+  const [loadingIndex, setLoadingIndex] = useState<number | null>(null)
 
   const { staffs, meta, isLoading, refetch } = useFetchStaffs({
     page,
@@ -73,46 +74,25 @@ export default function AllStaff() {
     sortOrder,
   })
 
-    const [loadingIndex, setLoadingIndex] = useState<number | null>(null)
-
-  /* -------- Remove single task -------- */
+  /* ---------------- Remove task ---------------- */
   const handleRemoveTask = async (index: number) => {
-    try {
-      setLoadingIndex(index)
-
-      const updatedLeads = selectedStaff.assignedLeads.filter(
-        (_: any, i: number) => i !== index
-      )
-
-      await PATCHDATA(`/v1/staff/${selectedStaff._id}`, {
-        assignedLeads: updatedLeads,
-      })
-
-      refetch()
-    } catch (error) {
-      console.error('Failed to remove task', error)
-    } finally {
-      setLoadingIndex(null)
-    }
-  }
-
-  /* ---------------- Handlers ---------------- */
-
-  const confirmDelete = async () => {
     if (!selectedStaff) return
 
-    await DELETEDATA(
-      selectedStaff.isDeleted
-        ? `/v1/staff/hard/${selectedStaff._id}`
-        : `/v1/staff/soft/${selectedStaff._id}`
+    setLoadingIndex(index)
+
+    const updatedLeads = selectedStaff.assignedLeads.filter(
+      (_: any, i: number) => i !== index
     )
 
-    setDeleteOpen(false)
-    setSelectedStaff(null)
+    await PATCHDATA(`/v1/staff/${selectedStaff._id}`, {
+      assignedLeads: updatedLeads,
+    })
+
     refetch()
+    setLoadingIndex(null)
   }
 
-  /** ✅ APPEND lead instead of overwrite */
+  /* ---------------- Assign task ---------------- */
   const assignLead = async () => {
     if (!selectedStaff || !leadName) return
 
@@ -136,14 +116,33 @@ export default function AllStaff() {
     refetch()
   }
 
-  const getSerialNumber = (index: number) =>
-    (page - 1) * meta.limit + index + 1
+  /* ---------------- Confirm soft delete / restore ---------------- */
+  const confirmSoftDelete = async () => {
+    if (!selectedStaff) return
 
-  /* ---------------- UI ---------------- */
+    await DELETEDATA(`/v1/staff/soft/${selectedStaff._id}`)
+
+    setSoftDeleteOpen(false)
+    setSelectedStaff(null)
+    refetch()
+  }
+
+  /* ---------------- Confirm hard delete ---------------- */
+  const confirmHardDelete = async () => {
+    if (!selectedStaff) return
+
+    await DELETEDATA(`/v1/staff/hard/${selectedStaff._id}`)
+
+    setHardDeleteOpen(false)
+    setSelectedStaff(null)
+    refetch()
+  }
+
+  const getSerial = (i: number) =>
+    (page - 1) * meta.limit + i + 1
 
   return (
     <div className="space-y-6">
-
       {/* ---------------- Filters ---------------- */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Input
@@ -152,10 +151,7 @@ export default function AllStaff() {
           onChange={(e) => setSearch(e.target.value)}
         />
 
-        <Select
-          value={String(deleted)}
-          onValueChange={(v) => setDeleted(v === 'true')}
-        >
+        <Select value={String(deleted)} onValueChange={(v) => setDeleted(v === 'true')}>
           <SelectTrigger>
             <SelectValue placeholder="Deleted" />
           </SelectTrigger>
@@ -165,10 +161,7 @@ export default function AllStaff() {
           </SelectContent>
         </Select>
 
-        <Select
-          value={String(sortOrder)}
-          onValueChange={(v) => setSortOrder(v === '1' ? 1 : -1)}
-        >
+        <Select value={String(sortOrder)} onValueChange={(v) => setSortOrder(v === '1' ? 1 : -1)}>
           <SelectTrigger>
             <SelectValue placeholder="Sort" />
           </SelectTrigger>
@@ -194,84 +187,85 @@ export default function AllStaff() {
         </TableHeader>
 
         <TableBody>
-          {!isLoading &&
-            staffs.map((staff, index) => (
-              <TableRow key={staff._id}>
-                <TableCell>{getSerialNumber(index)}</TableCell>
+          {!isLoading && staffs.map((staff, i) => (
+            <TableRow key={staff._id}>
+              <TableCell>{getSerial(i)}</TableCell>
 
-                <TableCell className="flex items-center gap-2">
-                  {staff.userId?.image ? (
-                    <Image
-                      src={staff.userId.image}
-                      alt={staff.userId.name}
-                      width={32}
-                      height={32}
-                      className="rounded-full"
-                    />
-                  ) : (
-                    <User size={20} />
-                  )}
-                  {staff.userId?.name}
-                </TableCell>
+              <TableCell className="flex items-center gap-2">
+                {staff.userId?.image ? (
+                  <Image
+                    src={staff.userId.image}
+                    alt=""
+                    width={32}
+                    height={32}
+                    className="rounded-full"
+                  />
+                ) : (
+                  <User size={20} />
+                )}
+                {staff.userId?.name}
+              </TableCell>
 
-                <TableCell>{staff.id}</TableCell>
-                <TableCell>{staff.userId?.email}</TableCell>
+              <TableCell>{staff.id}</TableCell>
+              <TableCell>{staff.userId?.email}</TableCell>
 
-                <TableCell>
-                  <Badge variant="secondary">
-                    {staff.assignedLeads?.length || 0}
-                  </Badge>
-                </TableCell>
+              <TableCell>
+                <Badge variant="secondary">
+                  {staff.assignedLeads?.length || 0}
+                </Badge>
+              </TableCell>
 
-                <TableCell>
-                  <Badge variant={staff.isDeleted ? 'destructive' : 'secondary'}>
-                    {staff.isDeleted ? 'Yes' : 'No'}
-                  </Badge>
-                </TableCell>
+              <TableCell>
+                <Badge variant={staff.isDeleted ? 'destructive' : 'secondary'}>
+                  {staff.isDeleted ? 'Yes' : 'No'}
+                </Badge>
+              </TableCell>
 
-                <TableCell className="flex justify-end gap-2">
-                  {/* View tasks */}
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    onClick={() => {
-                      setSelectedStaff(staff)
-                      setViewOpen(true)
-                    }}
-                  >
-                    <ClipboardList size={16} />
-                  </Button>
+              <TableCell className="flex justify-end gap-2">
+                {/* View tasks */}
+                <Button size="icon" variant="outline" onClick={() => {
+                  setSelectedStaff(staff)
+                  setViewOpen(true)
+                }}>
+                  <ClipboardList size={16} />
+                </Button>
 
-                  {/* Add task */}
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    onClick={() => {
-                      setSelectedStaff(staff)
-                      setAssignOpen(true)
-                    }}
-                  >
-                    <PlusCircle size={16} />
-                  </Button>
+                {/* Assign tasks */}
+                <Button size="icon" variant="outline" onClick={() => {
+                  setSelectedStaff(staff)
+                  setAssignOpen(true)
+                }}>
+                  <PlusCircle size={16} />
+                </Button>
 
-                  {/* Delete */}
+                {/* Soft Delete / Restore */}
+                <Button
+                  size="icon"
+                  variant={staff.isDeleted ? 'outline' : 'destructive'}
+                  onClick={() => {
+                    setSelectedStaff(staff)
+                    setSoftDeleteOpen(true)
+                  }}
+                >
+                  {staff.isDeleted ? <RotateCcw size={16} /> : <Trash2 size={16} />}
+                </Button>
+
+                {/* Hard Delete */}
+                {staff.isDeleted && (
                   <Button
                     size="icon"
                     variant="destructive"
                     onClick={() => {
                       setSelectedStaff(staff)
-                      setDeleteOpen(true)
+                      setHardDeleteOpen(true)
                     }}
                   >
-                    {staff.isDeleted ? (
-                      <RotateCcw size={16} />
-                    ) : (
-                      <Trash2 size={16} />
-                    )}
+                    <AlertTriangle size={16} />
                   </Button>
-                </TableCell>
-              </TableRow>
-            ))}
+                )}
+              </TableCell>
+            </TableRow>
+          ))}
         </TableBody>
       </Table>
 
@@ -279,65 +273,42 @@ export default function AllStaff() {
       <div className="flex justify-between">
         <p>Total: {meta.total}</p>
         <div className="flex gap-2">
-          <Button disabled={page === 1} onClick={() => setPage(p => p - 1)}>
-            Previous
-          </Button>
-          <Button
-            disabled={page * meta.limit >= meta.total}
-            onClick={() => setPage(p => p + 1)}
-          >
-            Next
-          </Button>
+          <Button disabled={page === 1} onClick={() => setPage(p => p - 1)}>Previous</Button>
+          <Button disabled={page * meta.limit >= meta.total} onClick={() => setPage(p => p + 1)}>Next</Button>
         </div>
       </div>
 
-      {/* ---------------- View Assigned Leads ---------------- */}
-       <Dialog open={viewOpen} onOpenChange={setViewOpen}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Assigned Tasks</DialogTitle>
-        </DialogHeader>
+      {/* ---------------- View Tasks ---------------- */}
+      <Dialog open={viewOpen} onOpenChange={setViewOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Assigned Tasks</DialogTitle>
+          </DialogHeader>
 
-        <div className="space-y-2">
-          {selectedStaff?.assignedLeads?.length ? (
-            selectedStaff.assignedLeads.map((lead: any, i: number) => (
-              <div
-                key={i}
-                className="flex items-start justify-between gap-3 rounded-lg border p-3"
-              >
-                <div>
-                  <p className="font-medium">{lead.name}</p>
-                  {lead.description && (
-                    <p className="text-xs text-muted-foreground">
-                      {lead.description}
-                    </p>
-                  )}
+          <div className="space-y-2">
+            {selectedStaff?.assignedLeads?.length ? (
+              selectedStaff.assignedLeads.map((lead: any, i: number) => (
+                <div key={i} className="flex items-start justify-between gap-3 rounded-lg border p-3">
+                  <div>
+                    <p className="font-medium">{lead.name}</p>
+                    {lead.description && <p className="text-xs text-muted-foreground">{lead.description}</p>}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={lead.isCompleted ? 'default' : 'secondary'}>
+                      {lead.isCompleted ? 'Done' : 'Pending'}
+                    </Badge>
+                    <Button size="icon" variant="ghost" disabled={loadingIndex === i} onClick={() => handleRemoveTask(i)}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
                 </div>
-
-                <div className="flex items-center gap-2">
-                  <Badge variant={lead.isCompleted ? 'default' : 'secondary'}>
-                    {lead.isCompleted ? 'Done' : 'Pending'}
-                  </Badge>
-
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    disabled={loadingIndex === i}
-                    onClick={() => handleRemoveTask(i)}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              No tasks assigned yet
-            </p>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground">No tasks assigned yet</p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* ---------------- Assign Lead Dialog ---------------- */}
       <Dialog open={assignOpen} onOpenChange={setAssignOpen}>
@@ -345,42 +316,43 @@ export default function AllStaff() {
           <DialogHeader>
             <DialogTitle>Add New Task</DialogTitle>
           </DialogHeader>
-
-          <Input
-            placeholder="Task name"
-            value={leadName}
-            onChange={(e) => setLeadName(e.target.value)}
-          />
-
-          <Input
-            placeholder="Description (optional)"
-            value={leadDescription}
-            onChange={(e) => setLeadDescription(e.target.value)}
-          />
-
+          <Input placeholder="Task name" value={leadName} onChange={(e) => setLeadName(e.target.value)} />
+          <Input placeholder="Description (optional)" value={leadDescription} onChange={(e) => setLeadDescription(e.target.value)} />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAssignOpen(false)}>
-              Cancel
-            </Button>
+            <Button variant="outline" onClick={() => setAssignOpen(false)}>Cancel</Button>
             <Button onClick={assignLead}>Add Task</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* ---------------- Delete Dialog ---------------- */}
-      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+      {/* ---------------- Soft Delete / Restore Dialog ---------------- */}
+      <Dialog open={softDeleteOpen} onOpenChange={setSoftDeleteOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Confirm Delete</DialogTitle>
+            <DialogTitle>{selectedStaff?.isDeleted ? 'Restore Staff' : 'Soft Delete Staff'}</DialogTitle>
           </DialogHeader>
-
+          <p className="text-sm text-muted-foreground">
+            Are you sure you want to {selectedStaff?.isDeleted ? 'restore' : 'soft delete'} this staff?
+          </p>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={confirmDelete}>
-              Confirm
-            </Button>
+            <Button variant="outline" onClick={() => setSoftDeleteOpen(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={confirmSoftDelete}>Confirm</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ---------------- Hard Delete Dialog ---------------- */}
+      <Dialog open={hardDeleteOpen} onOpenChange={setHardDeleteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Hard Delete Staff</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-red-600">
+            This will permanently delete the staff. This action cannot be undone.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setHardDeleteOpen(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={confirmHardDelete}>Confirm</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

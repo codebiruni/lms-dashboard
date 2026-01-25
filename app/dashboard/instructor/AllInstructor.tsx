@@ -39,9 +39,10 @@ import {
 import { Badge } from '@/components/ui/badge'
 import {
   Eye,
-  RotateCcw,
   Trash2,
+  RotateCcw,
   User,
+//   DollarSign,
 } from 'lucide-react'
 
 /* -------------------- Constants -------------------- */
@@ -57,20 +58,21 @@ const sortFields = [
 export default function AllInstructor() {
   /* ---------- filters ---------- */
   const [search, setSearch] = useState('')
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [page, setPage] = useState(1)
   const [approvalStatus, setApprovalStatus] =
     useState<'pending' | 'approved' | 'rejected' | undefined>()
-  const [deleted, setDeleted] = useState<boolean>(false)
+  const [deleted, setDeleted] = useState(false)
   const [sortBy, setSortBy] =
     useState<'joinDate' | 'selery'>('joinDate')
   const [sortOrder, setSortOrder] = useState<1 | -1>(-1)
 
-  /* ---------- delete dialog ---------- */
-  const [open, setOpen] = useState(false)
-  const [deleteType, setDeleteType] =
-    useState<'soft' | 'hard'>('soft')
-  const [selectedInstructorId, setSelectedInstructorId] =
-    useState<string | null>(null)
+  /* ---------- dialog ---------- */
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [actionType, setActionType] =
+    useState<'soft' | 'soft' | null>(null)
+  const [selectedInstructor, setSelectedInstructor] =
+    useState<any>(null)
 
   const {
     instructors,
@@ -93,23 +95,25 @@ export default function AllInstructor() {
     refetch()
   }
 
-  const confirmDelete = async () => {
-    if (!selectedInstructorId) return
+  const confirmAction = async () => {
+    if (!selectedInstructor || !actionType) return
 
-    if (deleteType === 'soft') {
-      await DELETEDATA(`/v1/instructor/soft/${selectedInstructorId}`)
-    } else {
-      await DELETEDATA(`/v1/instructor/hard/${selectedInstructorId}`)
+    if (actionType === 'soft') {
+      await DELETEDATA(`/v1/instructor/soft/${selectedInstructor._id}`)
     }
 
-    setOpen(false)
-    setSelectedInstructorId(null)
+    // if (actionType === 'soft') {
+    //   await DELETEDATA(`/v1/instructor/soft/${selectedInstructor._id}`)
+    // }
+
+    setDialogOpen(false)
+    setSelectedInstructor(null)
+    setActionType(null)
     refetch()
   }
 
-  const getSerialNumber = (index: number) => {
-    return (page - 1) * meta.limit + index + 1
-  }
+  const getSerial = (i: number) =>
+    (page - 1) * meta.limit + i + 1
 
   /* -------------------- UI -------------------- */
 
@@ -119,29 +123,23 @@ export default function AllInstructor() {
       {/* ---------------- Filters ---------------- */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
         <Input
-          placeholder="Search bio / expertise / ID"
+          placeholder="Search"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
 
-        <Select onValueChange={(v) =>
-          setApprovalStatus(v as any)
-        }>
+        <Select onValueChange={(v) => setApprovalStatus(v as any)}>
           <SelectTrigger>
-            <SelectValue placeholder="Approval Status" />
+            <SelectValue placeholder="Approval" />
           </SelectTrigger>
           <SelectContent>
             {approvalStatuses.map(s => (
-              <SelectItem key={s} value={s}>
-                {s}
-              </SelectItem>
+              <SelectItem key={s} value={s}>{s}</SelectItem>
             ))}
           </SelectContent>
         </Select>
 
-        <Select onValueChange={(v) =>
-          setDeleted(v === 'true')
-        }>
+        <Select onValueChange={(v) => setDeleted(v === 'true')}>
           <SelectTrigger>
             <SelectValue placeholder="Deleted" />
           </SelectTrigger>
@@ -153,9 +151,7 @@ export default function AllInstructor() {
 
         <Select
           defaultValue={sortBy}
-          onValueChange={(v) =>
-            setSortBy(v as 'joinDate' | 'selery')
-          }
+          onValueChange={(v) => setSortBy(v as any)}
         >
           <SelectTrigger>
             <SelectValue placeholder="Sort By" />
@@ -189,13 +185,11 @@ export default function AllInstructor() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-8 text-center">#</TableHead>
+            <TableHead>#</TableHead>
             <TableHead>Image</TableHead>
             <TableHead>Name</TableHead>
             <TableHead>ID</TableHead>
             <TableHead>Approval</TableHead>
-            <TableHead>Students</TableHead>
-            <TableHead>Courses</TableHead>
             <TableHead>Salary</TableHead>
             <TableHead>Deleted</TableHead>
             <TableHead className="text-right">Actions</TableHead>
@@ -203,26 +197,21 @@ export default function AllInstructor() {
         </TableHeader>
 
         <TableBody>
-          {!isLoading && instructors.map((ins, index) => (
+          {!isLoading && instructors.map((ins, i) => (
             <TableRow key={ins._id}>
-              <TableCell className="text-center">
-                {getSerialNumber(index)}
-              </TableCell>
+              <TableCell>{getSerial(i)}</TableCell>
 
               <TableCell>
                 {ins.userId?.image ? (
-                  <div className="relative w-10 h-10 rounded-full overflow-hidden border">
-                    <Image
-                      src={ins.userId.image}
-                      alt={ins.userId.name}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
+                  <Image
+                    src={ins.userId.image}
+                    alt=""
+                    width={40}
+                    height={40}
+                    className="rounded-full"
+                  />
                 ) : (
-                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center border">
-                    <User size={18} />
-                  </div>
+                  <User />
                 )}
               </TableCell>
 
@@ -241,17 +230,27 @@ export default function AllInstructor() {
                   </SelectTrigger>
                   <SelectContent>
                     {approvalStatuses.map(s => (
-                      <SelectItem key={s} value={s}>
-                        {s}
-                      </SelectItem>
+                      <SelectItem key={s} value={s}>{s}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </TableCell>
 
-              <TableCell>{ins.totalStudents}</TableCell>
-              <TableCell>{ins.totalCourses}</TableCell>
-              <TableCell>{ins.selery}</TableCell>
+              {/* -------- Salary Update -------- */}
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  {/* <DollarSign size={14} /> */}
+                  <Input
+                    className="w-24"
+                    defaultValue={ins.selery}
+                    onBlur={(e) =>
+                      updateInstructor(ins._id, {
+                        selery: Number(e.target.value),
+                      })
+                    }
+                  />
+                </div>
+              </TableCell>
 
               <TableCell>
                 <Badge variant={ins.isDeleted ? 'destructive' : 'secondary'}>
@@ -266,66 +265,59 @@ export default function AllInstructor() {
                   </Button>
                 </Link>
 
-                <Button
-                  size="icon"
-                  variant="destructive"
-                  onClick={() => {
-                    setSelectedInstructorId(ins._id)
-                    setDeleteType(ins.isDeleted ? 'hard' : 'soft')
-                    setOpen(true)
-                  }}
-                >
-                  {ins.isDeleted
-                    ? <RotateCcw size={16} />
-                    : <Trash2 size={16} />}
-                </Button>
+                {/* Soft delete */}
+                {!ins.isDeleted && (
+                  <Button
+                    size="icon"
+                    variant="destructive"
+                    onClick={() => {
+                      setSelectedInstructor(ins)
+                      setActionType('soft')
+                      setDialogOpen(true)
+                    }}
+                  >
+                    <Trash2 size={16} />
+                  </Button>
+                )}
+
+                {/* Restore / soft */}
+                {ins.isDeleted && (
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    onClick={() => {
+                      setSelectedInstructor(ins)
+                      setActionType('soft')
+                      setDialogOpen(true)
+                    }}
+                  >
+                    <RotateCcw size={16} />
+                  </Button>
+                )}
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
 
-      {/* ---------------- Pagination ---------------- */}
-      <div className="flex justify-between items-center">
-        <p>Total: {meta.total}</p>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            disabled={page === 1}
-            onClick={() => setPage(p => p - 1)}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            disabled={page * meta.limit >= meta.total}
-            onClick={() => setPage(p => p + 1)}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
-
-      {/* ---------------- Delete Dialog ---------------- */}
-      <Dialog open={open} onOpenChange={setOpen}>
+      {/* ---------------- Confirm Dialog ---------------- */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {deleteType === 'soft'
-                ? 'Confirm Soft Delete'
-                : 'Confirm Permanent Delete'}
+              Are you absolutely sure?
             </DialogTitle>
           </DialogHeader>
 
           <p className="text-sm text-muted-foreground">
-            Are you sure? {deleteType === 'hard' && 'This cannot be undone.'}
+            This action will update instructor state.
           </p>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={confirmDelete}>
+            <Button variant="destructive" onClick={confirmAction}>
               Confirm
             </Button>
           </DialogFooter>
