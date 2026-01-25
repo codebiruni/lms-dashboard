@@ -1,7 +1,10 @@
 import React from 'react'
+import AllInstructor from './AllInstructor'
 
 export default function page() {
   return (
-    <div>page</div>
+    <div className='py-6'>
+      <AllInstructor />
+    </div>
   )
 }
