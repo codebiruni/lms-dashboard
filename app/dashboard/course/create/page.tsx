@@ -3,7 +3,7 @@ import CreateCourse from './creat-course'
 
 export default function page() {
   return (
-    <div>
+    <div className='py-6'>
       <CreateCourse />
     </div>
   )

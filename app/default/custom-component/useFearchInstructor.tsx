@@ -62,7 +62,7 @@ type FetchInstructorsResponse = {
 
 export default function useFetchInstructors({
   page = 1,
-  limit = 10,
+  limit = 100,
   search,
   approvalStatus,
   deleted = false,
