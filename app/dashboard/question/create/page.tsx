@@ -1,7 +1,10 @@
 import React from 'react'
+import CreateQuestion from './CreateQuestion'
 
 export default function page() {
   return (
-    <div>page</div>
+    <div className='py-6'>
+      <CreateQuestion />
+    </div>
   )
 }

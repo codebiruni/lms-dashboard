@@ -26,13 +26,7 @@ const GETDATA = async <T = any>(path: string): Promise<T> => {
     cache: "no-store",
   });
 
-  if (!res.ok) {
-    // More descriptive error message
-    const errorText = await res.text().catch(() => res.statusText);
-    throw new Error(
-      `GET ${path} failed with status ${res.status}: ${errorText}`
-    );
-  }
+ 
 
   return res.json();
 };

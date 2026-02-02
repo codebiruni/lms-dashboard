@@ -17,8 +17,7 @@ export default function HomeComponent() {
 
   if (UserData && UserData?.role === 'admin') {
     router.push('/dashboard')
-  }
-  if (UserData && UserData?.role === 'instructor') {
+  } else if (UserData && UserData?.role === 'instructor') {
     router.push('/instructor')
   }
 
