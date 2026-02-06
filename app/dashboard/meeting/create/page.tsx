@@ -1,7 +1,10 @@
 import React from 'react'
+import CreateMeeting from './CreateMeeting'
 
 export default function page() {
   return (
-    <div>page</div>
+    <div className='py-6'>
+      <CreateMeeting />
+    </div>
   )
 }
