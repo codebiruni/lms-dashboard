@@ -56,7 +56,7 @@ export default function DashboardHeader() {
   return (
     <header className="flex sticky top-0 z-30 h-14 items-center justify-between bg-background dark:bg-black border-b shadow-sm px-4 transition-all">
       {/* Left section */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center ">
         <SidebarTrigger className="hover:bg-muted/50 p-1 rounded transition-colors" />
         <Separator orientation="vertical" className="h-6 border-muted-foreground" />
 
@@ -76,7 +76,7 @@ export default function DashboardHeader() {
                         title={displayName}
                       >
                         {getIconForPart(part, index)}
-                        <span className="text-sm font-medium text-foreground">
+                        <span className="text-sm font-medium hidden md:block text-foreground">
                           {displayName}
                         </span>
                       </Link>
@@ -84,7 +84,7 @@ export default function DashboardHeader() {
                   </BreadcrumbItem>
 
                   {index < pathParts.length - 1 && (
-                    <BreadcrumbSeparator className="w-2 h-2 border-t border-muted-foreground rotate-90" />
+                    <BreadcrumbSeparator className="w-2 h-2 border-muted-foreground " />
                   )}
                 </div>
               )

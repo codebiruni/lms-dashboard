@@ -1,7 +1,10 @@
 import React from 'react'
+import AllRecording from './AllRecording'
 
 export default function page() {
   return (
-    <div>page</div>
+    <div className='py-6'>
+      <AllRecording />
+    </div>
   )
 }

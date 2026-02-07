@@ -91,7 +91,7 @@ export default function CreateMeeting() {
       setLoading(true)
 
       const res = await POSTDATA('/v1/meeting', payload)
-
+console.log(res)
       if (!res.success) {
         throw new Error(res.message)
       }

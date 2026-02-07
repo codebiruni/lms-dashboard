@@ -1,7 +1,10 @@
 import React from 'react'
+import AllEnrollment from './AllEnrollment'
 
 export default function page() {
   return (
-    <div>page</div>
+    <div className='py-6'>
+      <AllEnrollment />
+    </div>
   )
 }

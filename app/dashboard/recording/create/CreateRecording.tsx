@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
@@ -39,6 +40,28 @@ export default function CreateRecording() {
   /* ---------- FETCH COURSES ---------- */
   const { courses } = useFetchCourses({ limit: 100 })
 
+  /* ---------- HELPER: CONVERT YOUTUBE TO EMBED ---------- */
+  const convertToEmbedUrl = (url: string) => {
+    try {
+      if (!url) return url
+
+      // Handle different youtube formats
+      const youtubeRegex =
+        /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/
+
+      const match = url.match(youtubeRegex)
+
+      if (match && match[1]) {
+        return `https://www.youtube.com/embed/${match[1]}`
+      }
+
+      // If not youtube link, return original
+      return url
+    } catch (error) {
+      return url
+    }
+  }
+
   /* ---------- SUBMIT HANDLER ---------- */
   const handleSubmit = async () => {
     if (!courseId || !title || !videoUrl) {
@@ -46,11 +69,14 @@ export default function CreateRecording() {
       return
     }
 
+    // Convert youtube url to embed url if needed
+    const finalVideoUrl = convertToEmbedUrl(videoUrl)
+
     const payload = {
       courseId,
       title,
       description,
-      videoUrl,
+      videoUrl: finalVideoUrl,
       duration,
       size,
       // uploadedBy will be set automatically from backend auth
