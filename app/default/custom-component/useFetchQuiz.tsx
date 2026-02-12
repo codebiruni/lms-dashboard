@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
@@ -13,10 +14,12 @@ export type GetQuizOptions = {
   sectionId?: string
   published?: boolean
   deleted?: boolean
+  sortBy?: 'createdAt' | 'totalMarks' | 'duration' | 'title'
   sortOrder?: 1 | -1
 }
 
 export type QuizQuestion = {
+  _id?: string
   question: string
   options: string[]
   correctAnswer: string
@@ -25,8 +28,8 @@ export type QuizQuestion = {
 
 export type Quiz = {
   _id: string
-  courseId: { _id: string; title?: string } | string
-  sectionId?: { _id: string; title?: string } | string
+  courseId: { _id: string; title: string; slug?: string } | string
+  sectionId?: { _id: string; title: string; course?: string } | string
   title: string
   description?: string
   totalMarks: number
@@ -39,14 +42,19 @@ export type Quiz = {
   questions: QuizQuestion[]
   createdAt: string
   updatedAt: string
+  __v?: number
 }
 
 type FetchQuizResponse = {
-  data: Quiz[]
-  meta: {
-    page: number
-    limit: number
-    total: number
+  success: boolean
+  message: string
+  data: {
+    meta: {
+      page: number
+      limit: number
+      total: number
+    }
+    data: Quiz[]
   }
 }
 
@@ -54,25 +62,30 @@ type FetchQuizResponse = {
 
 export default function useFetchQuiz({
   page = 1,
-  limit = 100,
+  limit = 10,
   search,
   courseId,
   sectionId,
   published,
   deleted = false,
+  sortBy = 'createdAt',
   sortOrder = -1,
 }: GetQuizOptions) {
   /* -------- Build query string dynamically -------- */
-  const queryString = new URLSearchParams({
+  const params: Record<string, string> = {
     page: String(page),
     limit: String(limit),
     sortOrder: String(sortOrder),
-    ...(search && { search }),
-    ...(courseId && { courseId }),
-    ...(sectionId && { sectionId }),
-    ...(published !== undefined && { published: String(published) }),
-    ...(deleted !== undefined && { deleted: String(deleted) }),
-  }).toString()
+    sortBy: sortBy,
+  }
+
+  if (search) params.search = search
+  if (courseId) params.courseId = courseId
+  if (sectionId) params.sectionId = sectionId
+  if (published !== undefined) params.published = String(published)
+  if (deleted !== undefined) params.deleted = String(deleted)
+
+  const queryString = new URLSearchParams(params).toString()
 
   const {
     data,
@@ -80,6 +93,8 @@ export default function useFetchQuiz({
     isFetching,
     error,
     refetch,
+    isError,
+    isSuccess,
   } = useQuery<FetchQuizResponse>({
     queryKey: [
       'quizzes',
@@ -90,35 +105,46 @@ export default function useFetchQuiz({
       sectionId,
       published,
       deleted,
+      sortBy,
       sortOrder,
     ],
     queryFn: async () => {
-      const res = await GETDATA<{
-        success: boolean
-        message: string
-        data: FetchQuizResponse
-      }>(`/v1/quez?${queryString}`)
+      try {
+        const res = await GETDATA<FetchQuizResponse>(`/v1/quez?${queryString}`)
 
-      if (!res.success) {
-        throw new Error(res.message || 'Failed to fetch quizzes')
+        if (!res?.success) {
+          throw new Error(res?.message || 'Failed to fetch quizzes')
+        }
+
+        return res
+      } catch (error: any) {
+        throw new Error(error?.message || 'Network error while fetching quizzes')
       }
-
-      return res.data
     },
     placeholderData: keepPreviousData,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
   })
 
-  /* -------------------- Return -------------------- */
+  /* -------------------- Process and return data -------------------- */
+  const quizzes = data?.data?.data ?? []
+  const meta = data?.data?.meta ?? {
+    page,
+    limit,
+    total: 0,
+  }
+
   return {
-    quizzes: data?.data ?? [],
-    meta: {
-      page: data?.meta.page ?? page,
-      limit: data?.meta.limit ?? limit,
-      total: data?.meta.total ?? 0,
-    },
+    quizzes,
+    meta,
     isLoading,
     isFetching,
+    isError,
     error,
+    isSuccess,
     refetch,
+    totalCount: meta.total,
+    currentPage: meta.page,
+    totalPages: Math.ceil(meta.total / meta.limit),
   }
 }

@@ -136,7 +136,7 @@ export default function CreateQuestion() {
       if (!res.success) throw new Error(res.message || 'Failed to create question')
 
       toast.success('Question created successfully 🎉')
-      router.push('/dashboard/questions')
+      router.push('/dashboard/question')
     } catch (err: any) {
       toast.error(err.message)
     } finally {

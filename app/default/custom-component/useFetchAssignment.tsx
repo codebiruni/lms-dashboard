@@ -10,6 +10,7 @@ export type UseFetchAssignmentsParams = {
   sectionId?: string
   lessonId?: string
   search?: string
+  deleted?: boolean
   page?: number
   limit?: number
 }
@@ -75,6 +76,7 @@ export default function useFetchAssignments({
   courseId,
   sectionId,
   lessonId,
+  deleted,
   search,
   page = 1,
   limit = 10,
@@ -83,7 +85,7 @@ export default function useFetchAssignments({
   const queryString = new URLSearchParams({
     page: String(page),
     limit: String(limit),
-
+deleted: deleted === undefined ? 'false' : String(deleted),
     ...(courseId && { courseId }),
     ...(sectionId && { sectionId }),
     ...(lessonId && { lessonId }),
@@ -102,6 +104,7 @@ export default function useFetchAssignments({
       courseId,
       sectionId,
       lessonId,
+      deleted,
       search,
       page,
       limit,
