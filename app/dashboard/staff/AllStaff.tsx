@@ -198,7 +198,7 @@ export default function AllStaff() {
                     alt=""
                     width={32}
                     height={32}
-                    className="rounded-full"
+                    className="rounded full"
                   />
                 ) : (
                   <User size={20} />
@@ -288,7 +288,7 @@ export default function AllStaff() {
           <div className="space-y-2">
             {selectedStaff?.assignedLeads?.length ? (
               selectedStaff.assignedLeads.map((lead: any, i: number) => (
-                <div key={i} className="flex items-start justify-between gap-3 rounded-lg border p-3">
+                <div key={i} className="flex items-start justify-between gap-3 rounded border p-3">
                   <div>
                     <p className="font-medium">{lead.name}</p>
                     {lead.description && <p className="text-xs text-muted-foreground">{lead.description}</p>}

@@ -218,7 +218,7 @@ export default function EditLiveClass({
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
       <div className="fixed inset-0 overflow-y-auto">
         <div className="flex min-h-full items-center justify-center p-4">
-          <Card className="w-full max-w-4xl rounded-lg shadow-lg border">
+          <Card className="w-full max-w-4xl rounded shadow-lg border">
             <CardHeader className="border-b">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-xl font-semibold flex items-center gap-2">
@@ -367,7 +367,7 @@ export default function EditLiveClass({
               </div>
 
               {/* Meeting Link */}
-              <div className="space-y-3 border p-4 rounded-md bg-muted/20">
+              <div className="space-y-3 border p-4 rounded bg-muted/20">
                 <Label htmlFor="meetingLink">Meeting Link</Label>
 
                 <div className="flex gap-2">
@@ -414,7 +414,7 @@ export default function EditLiveClass({
               </div>
 
               {/* Recording Toggle */}
-              <div className="flex items-center justify-between rounded-lg border p-4">
+              <div className="flex items-center justify-between rounded border p-4">
                 <div className="space-y-0.5">
                   <Label htmlFor="isRecorded" className="text-base font-medium">
                     Class Recorded
@@ -444,7 +444,7 @@ export default function EditLiveClass({
               )}
 
               {/* Cancel Toggle */}
-              <div className="flex items-center justify-between rounded-lg border p-4">
+              <div className="flex items-center justify-between rounded border p-4">
                 <div className="space-y-0.5">
                   <Label htmlFor="isCancelled" className="text-base font-medium">
                     Cancel Class
@@ -462,7 +462,7 @@ export default function EditLiveClass({
 
               {/* Current Status Badge */}
               {liveClass && (
-                <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-lg">
+                <div className="flex items-center gap-2 p-3 bg-muted/30 rounded">
                   <Badge variant="outline">Current Status</Badge>
                   {liveClass.isDeleted ? (
                     <Badge variant="destructive">Deleted</Badge>

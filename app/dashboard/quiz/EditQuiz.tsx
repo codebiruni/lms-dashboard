@@ -237,7 +237,7 @@ export default function EditQuiz({ quiz, open, onOpenChange, onSuccess }: EditQu
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
       <div className="fixed inset-0 overflow-y-auto">
         <div className="flex min-h-full items-center justify-center p-4">
-          <Card className="w-full max-w-4xl rounded-lg shadow-lg border">
+          <Card className="w-full max-w-4xl rounded shadow-lg border">
             <CardHeader className="border-b">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-xl font-semibold flex items-center gap-2">
@@ -381,7 +381,7 @@ export default function EditQuiz({ quiz, open, onOpenChange, onSuccess }: EditQu
                 </div>
               </div>
 
-              <div className="flex items-center justify-between rounded-lg border p-4">
+              <div className="flex items-center justify-between rounded border p-4">
                 <div className="space-y-0.5">
                   <Label htmlFor="publish" className="text-base font-medium">
                     Publish Quiz
@@ -430,7 +430,7 @@ export default function EditQuiz({ quiz, open, onOpenChange, onSuccess }: EditQu
                       {q.options.map((opt, oi) => (
                         <div key={oi} className="flex gap-2">
                           <div className="flex-1 flex gap-2">
-                            <div className="w-8 h-10 flex items-center justify-center bg-muted rounded-md">
+                            <div className="w-8 h-10 flex items-center justify-center bg-muted rounded">
                               <span className="text-sm font-medium">
                                 {String.fromCharCode(65 + oi)}
                               </span>

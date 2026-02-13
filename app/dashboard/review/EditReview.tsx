@@ -3,33 +3,31 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { useEffect, useState } from "react"
-import { UploadCloud, ImageIcon, Loader2, X } from "lucide-react"
-import { toast } from "sonner"
-import Image from "next/image"
+import React, { useState, useEffect } from 'react'
+import { UploadCloud, ImageIcon, Loader2, Star, X } from 'lucide-react'
+import { toast } from 'sonner'
+import Image from 'next/image'
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { Skeleton } from "@/components/ui/skeleton"
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
 
-import useFetchCategory from "@/app/default/custom-component/useFeatchCategory"
-import GETDATA from "@/app/default/functions/GetData"
-import PATCHDATA from "@/app/default/functions/Patch"
+import PATCHDATA from '@/app/default/functions/Patch'
+import GETDATA from '@/app/default/functions/GetData'
 
 /* -------------------- Types -------------------- */
 
-interface EditSubCategoryProps {
-  subCategory: any
+interface EditReviewProps {
+  review: any
   open: boolean
   onOpenChange: (open: boolean) => void
   onSuccess: () => void
@@ -37,74 +35,75 @@ interface EditSubCategoryProps {
 
 /* -------------------- Component -------------------- */
 
-export default function EditSubCategory({
-  subCategory,
+export default function EditReview({
+  review,
   open,
   onOpenChange,
   onSuccess
-}: EditSubCategoryProps) {
+}: EditReviewProps) {
   /* -------------------- STATE -------------------- */
-  const [categoryId, setCategoryId] = useState("")
-  const [name, setName] = useState("")
+  const [name, setName] = useState('')
+  const [courseName, setCourseName] = useState('')
+  const [description, setDescription] = useState('')
+  const [comment, setComment] = useState('')
+  const [rating, setRating] = useState<number>(5)
+
   const [image, setImage] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [existingImage, setExistingImage] = useState<string | null>(null)
-  const [currentCategory, setCurrentCategory] = useState<string>("")
 
   const [loading, setLoading] = useState(false)
   const [fetching, setFetching] = useState(true)
 
-  /* -------------------- FETCH PARENT CATEGORIES -------------------- */
-  const { categories, isLoading: categoriesLoading } = useFetchCategory({
-    page: 1,
-    limit: 100,
-    search: "",
-    deleted: false,
-  })
-
-  /* -------------------- LOAD SUBCATEGORY DATA -------------------- */
+  /* -------------------- LOAD REVIEW DATA -------------------- */
   useEffect(() => {
-    const loadSubCategory = async () => {
-      if (!subCategory?._id || !open) return
+    const loadReview = async () => {
+      if (!review?._id || !open) return
 
       try {
         setFetching(true)
-        
-        // If we have full subCategory data from props, use it
-        if (subCategory) {
-          setCategoryId(subCategory.category?._id || "")
-          setCurrentCategory(subCategory.category?.name || "")
-          setName(subCategory.name || "")
-          setExistingImage(subCategory.image || null)
+
+        // If we have full review data from props, use it
+        if (review) {
+          setName(review.name || '')
+          setCourseName(review.courseName || '')
+          setDescription(review.description || '')
+          setComment(review.comment || '')
+          setRating(review.rating || 5)
+          setExistingImage(review.image || null)
         } else {
           // Otherwise fetch it
-          const res = await GETDATA<any>(`/v1/subcategory/${subCategory._id}`)
+          const res = await GETDATA<any>(`/v1/review/${review._id}`)
           if (res?.success) {
             const data = res.data
-            setCategoryId(data.category?._id || "")
-            setCurrentCategory(data.category?.name || "")
-            setName(data.name || "")
+            setName(data.name || '')
+            setCourseName(data.courseName || '')
+            setDescription(data.description || '')
+            setComment(data.comment || '')
+            setRating(data.rating || 5)
             setExistingImage(data.image || null)
           }
         }
       } catch (error) {
-        toast.error("Failed to load subcategory data")
+        toast.error('Failed to load review data')
       } finally {
         setFetching(false)
       }
     }
 
-    loadSubCategory()
-  }, [subCategory, open])
+    loadReview()
+  }, [review, open])
 
   /* -------------------- RESET FORM -------------------- */
   const resetForm = () => {
-    setCategoryId("")
-    setName("")
+    setName('')
+    setCourseName('')
+    setDescription('')
+    setComment('')
+    setRating(5)
     setImage(null)
     setPreview(null)
     setExistingImage(null)
-    setCurrentCategory("")
   }
 
   /* -------------------- IMAGE HANDLERS -------------------- */
@@ -129,18 +128,13 @@ export default function EditSubCategory({
 
   /* -------------------- SUBMIT -------------------- */
   const handleSubmit = async () => {
-    if (!categoryId) {
-      toast.error("Please select a parent category")
-      return
-    }
-
-    if (!name.trim()) {
-      toast.error("Subcategory name is required")
+    if (!name || !courseName || !description || !rating) {
+      toast.error('All required fields must be filled')
       return
     }
 
     if (!image && !existingImage) {
-      toast.error("Subcategory image is required")
+      toast.error('Reviewer image is required')
       return
     }
 
@@ -148,26 +142,32 @@ export default function EditSubCategory({
       setLoading(true)
 
       const formData = new FormData()
-      formData.append("category", categoryId)
-      formData.append("name", name.trim())
+      formData.append('name', name)
+      formData.append('courseName', courseName)
+      formData.append('description', description)
+      formData.append('rating', String(rating))
+      
+      if (comment) {
+        formData.append('comment', comment)
+      }
 
       // Only send image if user changed it
       if (image) {
-        formData.append("image", image)
+        formData.append('image', image)
       }
 
-      const res = await PATCHDATA(`/v1/subcategory/${subCategory._id}`, formData)
+      const res = await PATCHDATA(`/v1/review/${review._id}`, formData)
 
       if (!res?.success) {
-        throw new Error(res?.message || "Failed to update subcategory")
+        throw new Error(res?.message || 'Failed to update review')
       }
 
-      toast.success("Subcategory updated successfully ✅")
+      toast.success('Review updated successfully ⭐')
       onSuccess()
       onOpenChange(false)
       resetForm()
     } catch (error: any) {
-      toast.error(error.message || "Failed to update subcategory")
+      toast.error(error.message || 'Failed to update review')
     } finally {
       setLoading(false)
     }
@@ -191,18 +191,12 @@ export default function EditSubCategory({
                 <Skeleton className="h-8 w-48" />
               </CardHeader>
               <CardContent className="space-y-6 py-6">
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-10 w-full" />
-                </div>
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-10 w-full" />
-                </div>
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-52 w-full" />
-                </div>
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-24 w-full" />
+                <Skeleton className="h-10 w-32" />
+                <Skeleton className="h-52 w-full" />
                 <Skeleton className="h-12 w-full" />
               </CardContent>
             </Card>
@@ -221,76 +215,88 @@ export default function EditSubCategory({
             <CardHeader className="border-b">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-xl font-semibold">
-                  Edit Subcategory
+                  Edit Review
                 </CardTitle>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleCancel}
-                >
+                <Button variant="ghost" size="sm" onClick={handleCancel}>
                   <X className="h-4 w-4" />
                 </Button>
               </div>
               <p className="text-sm text-muted-foreground mt-1">
-                Updating: {subCategory?.name}
+                Updating review by: {review?.name}
               </p>
             </CardHeader>
 
             <CardContent className="space-y-6 py-6 max-h-[70vh] overflow-y-auto">
-              {/* -------- PARENT CATEGORY -------- */}
+              {/* ---------------- NAME ---------------- */}
               <div className="space-y-2">
-                <Label htmlFor="category" className="required">
-                  Parent Category
-                </Label>
-
-                {categoriesLoading ? (
-                  <Skeleton className="h-10 w-full" />
-                ) : (
-                  <>
-                    <Select value={categoryId} onValueChange={setCategoryId}>
-                      <SelectTrigger id="category">
-                        <SelectValue placeholder="Select a category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((cat: any) => (
-                          <SelectItem key={cat._id} value={cat._id}>
-                            <div className="flex items-center gap-2">
-                              <span>{cat.name}</span>
-                              {cat.isDeleted && (
-                                <Badge variant="destructive" className="text-xs">
-                                  Deleted
-                                </Badge>
-                              )}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {currentCategory && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Current: {currentCategory}
-                      </p>
-                    )}
-                  </>
-                )}
-              </div>
-
-              {/* -------- NAME -------- */}
-              <div className="space-y-2">
-                <Label htmlFor="name" className="required">
-                  Subcategory Name
-                </Label>
+                <Label htmlFor="name" className="required">Reviewer Name</Label>
                 <Input
                   id="name"
-                  placeholder="e.g. Python"
+                  placeholder="e.g. Robius Sani"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                 />
               </div>
 
-              {/* -------- IMAGE -------- */}
+              {/* ---------------- COURSE NAME ---------------- */}
               <div className="space-y-2">
-                <Label className="required">Subcategory Image</Label>
+                <Label htmlFor="courseName" className="required">Course Name</Label>
+                <Input
+                  id="courseName"
+                  placeholder="e.g. Full Stack Web Development"
+                  value={courseName}
+                  onChange={(e) => setCourseName(e.target.value)}
+                />
+              </div>
+
+              {/* ---------------- DESCRIPTION ---------------- */}
+              <div className="space-y-2">
+                <Label htmlFor="description" className="required">Short Description</Label>
+                <Input
+                  id="description"
+                  placeholder="e.g. Amazing learning experience"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+              </div>
+
+              {/* ---------------- COMMENT ---------------- */}
+              <div className="space-y-2">
+                <Label htmlFor="comment">Detailed Comment (Optional)</Label>
+                <Textarea
+                  id="comment"
+                  rows={4}
+                  placeholder="Write your detailed feedback..."
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                />
+              </div>
+
+              {/* ---------------- RATING ---------------- */}
+              <div className="space-y-2">
+                <Label className="required">Rating</Label>
+                <div className="flex items-center gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setRating(star)}
+                      className={`transition ${
+                        star <= rating ? 'text-yellow-400' : 'text-muted-foreground'
+                      }`}
+                    >
+                      <Star
+                        className="h-8 w-8"
+                        fill={star <= rating ? 'currentColor' : 'none'}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* ---------------- IMAGE UPLOAD ---------------- */}
+              <div className="space-y-2">
+                <Label className="required">Reviewer Image</Label>
 
                 <div
                   onDragOver={(e) => e.preventDefault()}
@@ -299,17 +305,17 @@ export default function EditSubCategory({
                 >
                   <input
                     type="file"
-                    accept=".jpg,.jpeg,.png,.webp,.gif"
+                    accept=".jpg,.jpeg,.png,.webp"
                     className="absolute inset-0 cursor-pointer opacity-0"
                     onChange={(e) =>
                       e.target.files && handleFile(e.target.files[0])
                     }
                   />
 
-                  {preview || existingImage ? (
+                  {(preview || existingImage) ? (
                     <>
                       <Image
-                        src={preview || existingImage || ""}
+                        src={preview || existingImage || ''}
                         alt="preview"
                         fill
                         className="rounded object-cover"
@@ -344,31 +350,31 @@ export default function EditSubCategory({
                 )}
               </div>
 
-              {/* -------- CURRENT STATUS -------- */}
+              {/* ---------------- CURRENT STATUS ---------------- */}
               <div className="flex items-center gap-2 p-3 bg-muted/30 rounded">
                 <Badge variant="outline">Current Status</Badge>
-                <Badge variant={subCategory?.isDeleted ? "destructive" : "default"}>
-                  {subCategory?.isDeleted ? "Deleted" : "Active"}
+                <Badge variant={review?.isDeleted ? 'destructive' : 'default'}>
+                  {review?.isDeleted ? 'Deleted' : 'Active'}
                 </Badge>
               </div>
 
-              {/* -------- SUBMIT -------- */}
+              {/* ---------------- SUBMIT ---------------- */}
               <div className="flex gap-3 pt-4 border-t">
                 <Button
                   onClick={handleSubmit}
-                  disabled={loading || categoriesLoading}
+                  disabled={loading}
                   className="flex-1"
                   size="lg"
                 >
                   {loading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Updating...
+                      Updating Review...
                     </>
                   ) : (
                     <>
                       <ImageIcon className="mr-2 h-4 w-4" />
-                      Update Subcategory
+                      Update Review
                     </>
                   )}
                 </Button>
@@ -383,7 +389,7 @@ export default function EditSubCategory({
                 </Button>
               </div>
 
-              {/* -------- REQUIRED FIELDS NOTE -------- */}
+              {/* ---------------- REQUIRED FIELDS NOTE ---------------- */}
               <p className="text-xs text-muted-foreground">
                 <span className="text-destructive">*</span> Required fields
               </p>

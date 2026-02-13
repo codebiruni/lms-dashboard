@@ -250,7 +250,7 @@ export default function AllLesson() {
       </div>
 
       {/* ---------------- Table ---------------- */}
-      <div className="border rounded-lg overflow-hidden">
+      <div className="border rounded overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -474,7 +474,7 @@ export default function AllLesson() {
             <div className="space-y-6">
               {/* Status Cards */}
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-muted/30 rounded-lg p-4">
+                <div className="bg-muted/30 rounded p-4">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                     <CheckCircle size={16} />
                     <span>Published Status</span>
@@ -487,7 +487,7 @@ export default function AllLesson() {
                     <Badge variant="secondary">Unpublished</Badge>
                   )}
                 </div>
-                <div className="bg-muted/30 rounded-lg p-4">
+                <div className="bg-muted/30 rounded p-4">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                     <Trash2 size={16} />
                     <span>Delete Status</span>
@@ -521,7 +521,7 @@ export default function AllLesson() {
                   <h3 className="text-sm font-medium text-muted-foreground mb-1">
                     Description
                   </h3>
-                  <div className="bg-muted/20 rounded-lg p-4">
+                  <div className="bg-muted/20 rounded p-4">
                     <p className="whitespace-pre-wrap text-sm leading-relaxed">
                       {selectedLesson.description || 'No description provided'}
                     </p>
@@ -571,7 +571,7 @@ export default function AllLesson() {
                     <h3 className="text-sm font-medium text-muted-foreground mb-1">
                       Video URL
                     </h3>
-                    <div className="bg-muted/20 rounded-lg p-3">
+                    <div className="bg-muted/20 rounded p-3">
                       <a 
                         href={selectedLesson.videoUrl} 
                         target="_blank" 
@@ -590,7 +590,7 @@ export default function AllLesson() {
                     <h3 className="text-sm font-medium text-muted-foreground mb-1">
                       Document URL
                     </h3>
-                    <div className="bg-muted/20 rounded-lg p-3">
+                    <div className="bg-muted/20 rounded p-3">
                       <a 
                         href={selectedLesson.documentUrl} 
                         target="_blank" 

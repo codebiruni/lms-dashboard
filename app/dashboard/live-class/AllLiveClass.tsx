@@ -286,7 +286,7 @@ export default function AllLiveClass() {
       </div>
 
       {/* ---------------- Table ---------------- */}
-      <div className="border rounded-lg overflow-hidden">
+      <div className="border rounded overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -516,7 +516,7 @@ export default function AllLiveClass() {
             <div className="space-y-6">
               {/* Status Cards */}
               <div className="grid grid-cols-4 gap-4">
-                <div className="bg-muted/30 rounded-lg p-3">
+                <div className="bg-muted/30 rounded p-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <CheckCircle size={14} />
                     <span>Status</span>
@@ -528,7 +528,7 @@ export default function AllLiveClass() {
                     {getClassStatus(selectedLiveClass).label}
                   </Badge>
                 </div>
-                <div className="bg-muted/30 rounded-lg p-3">
+                <div className="bg-muted/30 rounded p-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <Video size={14} />
                     <span>Platform</span>
@@ -537,7 +537,7 @@ export default function AllLiveClass() {
                     {selectedLiveClass.meetingPlatform.replace('-', ' ')}
                   </span>
                 </div>
-                <div className="bg-muted/30 rounded-lg p-3">
+                <div className="bg-muted/30 rounded p-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <CheckCircle size={14} />
                     <span>Recorded</span>
@@ -546,7 +546,7 @@ export default function AllLiveClass() {
                     {selectedLiveClass.isRecorded ? 'Yes' : 'No'}
                   </Badge>
                 </div>
-                <div className="bg-muted/30 rounded-lg p-3">
+                <div className="bg-muted/30 rounded p-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <XCircle size={14} />
                     <span>Cancelled</span>
@@ -599,7 +599,7 @@ export default function AllLiveClass() {
                   <h3 className="text-sm font-medium text-muted-foreground mb-1">
                     Instructor
                   </h3>
-                  <div className="bg-muted/20 rounded-lg p-3">
+                  <div className="bg-muted/20 rounded p-3">
                     <div className="grid grid-cols-2 gap-2">
                       <div>
                         <p className="text-xs text-muted-foreground">Name</p>
@@ -617,7 +617,7 @@ export default function AllLiveClass() {
                   <h3 className="text-sm font-medium text-muted-foreground mb-1">
                     Description
                   </h3>
-                  <div className="bg-muted/20 rounded-lg p-4">
+                  <div className="bg-muted/20 rounded p-4">
                     <p className="whitespace-pre-wrap text-sm leading-relaxed">
                       {selectedLiveClass.description || 'No description provided'}
                     </p>

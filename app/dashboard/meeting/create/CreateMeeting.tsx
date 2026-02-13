@@ -136,7 +136,7 @@ console.log(res)
           </div>
 
           {/* MEETING LINK SECTION */}
-          <div className="border p-4 rounded-md bg-slate-50 space-y-3">
+          <div className="border p-4 rounded bg-slate-50 space-y-3">
             <Label>Meeting Link *</Label>
 
             <div className="flex gap-2">

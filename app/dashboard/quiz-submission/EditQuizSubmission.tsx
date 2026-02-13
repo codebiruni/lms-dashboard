@@ -188,7 +188,7 @@ export default function EditQuizSubmission({
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
       <div className="fixed inset-0 overflow-y-auto">
         <div className="flex min-h-full items-center justify-center p-4">
-          <Card className="w-full max-w-3xl rounded-lg shadow-lg border">
+          <Card className="w-full max-w-3xl rounded shadow-lg border">
             <CardHeader className="border-b">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-xl font-semibold flex items-center gap-2">
@@ -222,22 +222,22 @@ export default function EditQuizSubmission({
             <CardContent className="space-y-6 py-6 max-h-[70vh] overflow-y-auto">
               {/* Summary Cards */}
               <div className="grid grid-cols-3 gap-4">
-                <div className="bg-muted/30 rounded-lg p-3">
+                <div className="bg-muted/30 rounded p-3">
                   <div className="text-sm text-muted-foreground mb-1">Total Marks</div>
                   <div className="text-2xl font-bold">{submission.totalMarks}</div>
                 </div>
-                <div className="bg-muted/30 rounded-lg p-3">
+                <div className="bg-muted/30 rounded p-3">
                   <div className="text-sm text-muted-foreground mb-1">Pass Marks</div>
                   <div className="text-2xl font-bold">{submission.quizId?.passMarks || 0}</div>
                 </div>
-                <div className="bg-muted/30 rounded-lg p-3">
+                <div className="bg-muted/30 rounded p-3">
                   <div className="text-sm text-muted-foreground mb-1">Obtained Marks</div>
                   <div className="text-2xl font-bold">{obtainedMarks}</div>
                 </div>
               </div>
 
               {/* Pass/Fail Toggle */}
-              <div className="flex items-center justify-between rounded-lg border p-4">
+              <div className="flex items-center justify-between rounded border p-4">
                 <div className="space-y-0.5">
                   <Label htmlFor="isPassed" className="text-base font-medium">
                     Exam Result
@@ -259,7 +259,7 @@ export default function EditQuizSubmission({
               </div>
 
               {/* Evaluation Status */}
-              <div className="flex items-center justify-between rounded-lg border p-4">
+              <div className="flex items-center justify-between rounded border p-4">
                 <div className="space-y-0.5">
                   <Label htmlFor="isEvaluated" className="text-base font-medium">
                     Evaluation Status
@@ -292,7 +292,7 @@ export default function EditQuizSubmission({
                   const maxMarks = question?.marks || 0
                   
                   return (
-                    <div key={idx} className="border rounded-lg p-4 mb-4 bg-muted/10">
+                    <div key={idx} className="border rounded p-4 mb-4 bg-muted/10">
                       <div className="flex justify-between items-start mb-3">
                         <h4 className="font-medium">
                           Question {idx + 1}: {question?.question || `Question ${idx + 1}`}

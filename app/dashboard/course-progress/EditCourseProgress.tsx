@@ -253,7 +253,7 @@ export default function EditCourseProgress({
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
       <div className="fixed inset-0 overflow-y-auto">
         <div className="flex min-h-full items-center justify-center p-4">
-          <Card className="w-full max-w-4xl rounded-lg shadow-lg border">
+          <Card className="w-full max-w-4xl rounded shadow-lg border">
             <CardHeader className="border-b">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-xl font-semibold flex items-center gap-2">
@@ -293,7 +293,7 @@ export default function EditCourseProgress({
 
             <CardContent className="space-y-5 py-6 max-h-[70vh] overflow-y-auto">
               {/* Progress Overview */}
-              <div className="bg-muted/30 rounded-lg p-4">
+              <div className="bg-muted/30 rounded p-4">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-medium">Progress Overview</h3>
                   <Badge variant="outline">
@@ -372,7 +372,7 @@ export default function EditCourseProgress({
                       No lessons found in this section
                     </p>
                   ) : (
-                    <div className="border rounded-lg max-h-75 overflow-y-auto">
+                    <div className="border rounded max-h-75 overflow-y-auto">
                       <Table>
                         <TableHeader className="sticky top-0 bg-background">
                           <TableRow>
@@ -406,7 +406,7 @@ export default function EditCourseProgress({
               )}
 
               {/* Completion Toggle */}
-              <div className="flex items-center justify-between rounded-lg border p-4">
+              <div className="flex items-center justify-between rounded border p-4">
                 <div className="space-y-0.5">
                   <Label htmlFor="isCompleted" className="text-base font-medium">
                     Mark as Completed
@@ -450,7 +450,7 @@ export default function EditCourseProgress({
               )}
 
               {/* Current Status Badge */}
-              <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-lg">
+              <div className="flex items-center gap-2 p-3 bg-muted/30 rounded">
                 <Badge variant="outline">Current Status</Badge>
                 {progress.isDeleted ? (
                   <Badge variant="destructive">Deleted</Badge>

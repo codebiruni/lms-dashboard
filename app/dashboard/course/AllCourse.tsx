@@ -285,7 +285,7 @@ export default function AllCourse() {
       </div>
 
       {/* ---------------- Table ---------------- */}
-      <div className="border rounded-lg overflow-hidden">
+      <div className="border rounded overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -506,28 +506,28 @@ export default function AllCourse() {
             <div className="space-y-6">
               {/* Course Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-muted/30 rounded-lg p-3">
+                <div className="bg-muted/30 rounded p-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <Users size={14} />
                     <span>Students</span>
                   </div>
                   <p className="text-2xl font-semibold">{selectedCourse.totalStudents}</p>
                 </div>
-                <div className="bg-muted/30 rounded-lg p-3">
+                <div className="bg-muted/30 rounded p-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <BookOpen size={14} />
                     <span>Lessons</span>
                   </div>
                   <p className="text-2xl font-semibold">{selectedCourse.totalLessons}</p>
                 </div>
-                <div className="bg-muted/30 rounded-lg p-3">
+                <div className="bg-muted/30 rounded p-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <Clock size={14} />
                     <span>Duration</span>
                   </div>
                   <p className="text-2xl font-semibold">{selectedCourse.durationInHours}h</p>
                 </div>
-                <div className="bg-muted/30 rounded-lg p-3">
+                <div className="bg-muted/30 rounded p-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <Star size={14} />
                     <span>Rating</span>
@@ -539,7 +539,7 @@ export default function AllCourse() {
               {/* Thumbnail & Basic Info */}
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="md:w-1/3">
-                  <div className="relative w-full h-40 rounded-lg overflow-hidden border">
+                  <div className="relative w-full h-40 rounded overflow-hidden border">
                     <Image
                       src={selectedCourse.thumbnail}
                       alt={selectedCourse.title}
@@ -611,7 +611,7 @@ export default function AllCourse() {
                   <FileText size={18} />
                   Description
                 </h3>
-                <div className="bg-muted/20 rounded-lg p-4">
+                <div className="bg-muted/20 rounded p-4">
                   <p className="whitespace-pre-wrap text-sm leading-relaxed">
                     {selectedCourse.description}
                   </p>
@@ -627,13 +627,13 @@ export default function AllCourse() {
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
                     {selectedCourse.enrollmentStart && (
-                      <div className="bg-muted/20 rounded-lg p-3">
+                      <div className="bg-muted/20 rounded p-3">
                         <p className="text-xs text-muted-foreground mb-1">Start Date</p>
                         <p className="font-medium">{formatDate(selectedCourse.enrollmentStart)}</p>
                       </div>
                     )}
                     {selectedCourse.enrollmentEnd && (
-                      <div className="bg-muted/20 rounded-lg p-3">
+                      <div className="bg-muted/20 rounded p-3">
                         <p className="text-xs text-muted-foreground mb-1">End Date</p>
                         <p className="font-medium">{formatDate(selectedCourse.enrollmentEnd)}</p>
                       </div>
@@ -647,7 +647,7 @@ export default function AllCourse() {
                 {selectedCourse.requirements && selectedCourse.requirements.length > 0 && (
                   <div>
                     <h3 className="text-lg font-semibold mb-3">Requirements</h3>
-                    <ul className="list-disc list-inside space-y-1 bg-muted/20 rounded-lg p-4">
+                    <ul className="list-disc list-inside space-y-1 bg-muted/20 rounded p-4">
                       {selectedCourse.requirements.map((req, idx) => (
                         <li key={idx} className="text-sm">{req}</li>
                       ))}
@@ -657,7 +657,7 @@ export default function AllCourse() {
                 {selectedCourse.whatYouWillLearn && selectedCourse.whatYouWillLearn.length > 0 && (
                   <div>
                     <h3 className="text-lg font-semibold mb-3">What You`ll Learn</h3>
-                    <ul className="list-disc list-inside space-y-1 bg-muted/20 rounded-lg p-4">
+                    <ul className="list-disc list-inside space-y-1 bg-muted/20 rounded p-4">
                       {selectedCourse.whatYouWillLearn.map((item, idx) => (
                         <li key={idx} className="text-sm">{item}</li>
                       ))}

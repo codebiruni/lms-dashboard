@@ -6,35 +6,31 @@ import GETDATA from "../functions/GetData"
 
 /* -------------------- Types -------------------- */
 
-type UseFetchReviewParams = {
+type UseFetchLeadParams = {
   page?: number
   limit?: number
   search?: string
-  rating?: number | string
+  status?: string
   deleted?: boolean
-  sortBy?: 'createdAt' | 'rating' | 'name'
+  sortBy?: 'createdAt' | 'name' | 'status' | 'updatedAt'
   sortOrder?: 'asc' | 'desc'
-  minRating?: number
-  maxRating?: number
   startDate?: string
   endDate?: string
 }
 
-export type Review = {
+export type Lead = {
   _id: string
   name: string
-  courseName: string
-  image: string
-  description: string
-  rating: number
-  comment?: string
+  email?: string
+  description?: string
+  status: 'new' | 'contacted' | 'qualified' | 'lost' | 'converted'
   isDeleted: boolean
   createdAt: string
   updatedAt: string
   __v?: number
 }
 
-type FetchReviewResponse = {
+type FetchLeadResponse = {
   success: boolean
   message: string
   data: {
@@ -44,25 +40,23 @@ type FetchReviewResponse = {
       total: number
       totalPages: number
     }
-    data: Review[]
+    data: Lead[]
   }
 }
 
 /* -------------------- Hook -------------------- */
 
-export default function useFetchReview({
+export default function useFetchLead({
   page = 1,
   limit = 10,
   search = "",
-  rating,
+  status,
   deleted = false,
   sortBy = 'createdAt',
   sortOrder = 'desc',
-  minRating,
-  maxRating,
   startDate,
   endDate,
-}: UseFetchReviewParams) {
+}: UseFetchLeadParams) {
 
   // Build query string dynamically
   const params: Record<string, string> = {
@@ -74,9 +68,7 @@ export default function useFetchReview({
   }
 
   if (search) params.search = search
-  if (rating !== undefined && rating !== 'all') params.rating = String(rating)
-  if (minRating !== undefined) params.minRating = String(minRating)
-  if (maxRating !== undefined) params.maxRating = String(maxRating)
+  if (status && status !== 'all') params.status = status
   if (startDate) params.startDate = startDate
   if (endDate) params.endDate = endDate
 
@@ -91,34 +83,32 @@ export default function useFetchReview({
     isError,
     isSuccess,
     isPlaceholderData
-  } = useQuery<FetchReviewResponse>({
+  } = useQuery<FetchLeadResponse>({
     queryKey: [
-      "reviews",
+      "leads",
       page,
       limit,
       search,
-      rating,
+      status,
       deleted,
       sortBy,
       sortOrder,
-      minRating,
-      maxRating,
       startDate,
       endDate,
     ],
     queryFn: async () => {
       try {
-        const res = await GETDATA<FetchReviewResponse>(
-          `/v1/review?${queryString}`
+        const res = await GETDATA<FetchLeadResponse>(
+          `/v1/lead?${queryString}`
         )
 
         if (!res?.success) {
-          throw new Error(res?.message || "Failed to fetch reviews")
+          throw new Error(res?.message || "Failed to fetch leads")
         }
 
         return res
       } catch (error: any) {
-        throw new Error(error?.message || "Network error while fetching reviews")
+        throw new Error(error?.message || "Network error while fetching leads")
       }
     },
     placeholderData: keepPreviousData,
@@ -129,7 +119,7 @@ export default function useFetchReview({
   })
 
   // Process and return data
-  const reviews = data?.data?.data ?? []
+  const leads = data?.data?.data ?? []
   const meta = data?.data?.meta ?? {
     page,
     limit,
@@ -138,20 +128,16 @@ export default function useFetchReview({
   }
 
   // Calculate stats
-  const averageRating = reviews.length > 0
-    ? Number((reviews.reduce((acc: number, r: Review) => acc + r.rating, 0) / reviews.length).toFixed(1))
-    : 0
-
-  const ratingDistribution = {
-    1: reviews.filter((r: Review) => r.rating === 1).length,
-    2: reviews.filter((r: Review) => r.rating === 2).length,
-    3: reviews.filter((r: Review) => r.rating === 3).length,
-    4: reviews.filter((r: Review) => r.rating === 4).length,
-    5: reviews.filter((r: Review) => r.rating === 5).length,
+  const statusCounts = {
+    new: leads.filter((l: Lead) => l.status === 'new').length,
+    contacted: leads.filter((l: Lead) => l.status === 'contacted').length,
+    qualified: leads.filter((l: Lead) => l.status === 'qualified').length,
+    lost: leads.filter((l: Lead) => l.status === 'lost').length,
+    converted: leads.filter((l: Lead) => l.status === 'converted').length,
   }
 
   return {
-    reviews,
+    leads,
     meta,
     isLoading,
     isFetching,
@@ -165,10 +151,8 @@ export default function useFetchReview({
     totalPages: meta.totalPages,
     pageSize: meta.limit,
     stats: {
-      averageRating,
-      ratingDistribution,
-      totalReviews: reviews.length,
-      deletedCount: reviews.filter((r: Review) => r.isDeleted).length,
+      statusCounts,
+      deletedCount: leads.filter((l: Lead) => l.isDeleted).length,
     },
   }
 }

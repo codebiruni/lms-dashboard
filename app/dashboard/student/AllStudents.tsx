@@ -119,11 +119,11 @@ export default function AllStudents() {
               <TableCell>
                 <div className="flex items-center justify-center">
                   {student.userId?.image ? (
-                    <div className="relative w-10 h-10 rounded-full overflow-hidden border">
+                    <div className="relative w-10 h-10 rounded full overflow-hidden border">
                       <Image src={student.userId.image} alt={student.userId.name} fill className="object-cover" sizes="40px" />
                     </div>
                   ) : (
-                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center border">
+                    <div className="w-10 h-10 rounded full bg-muted flex items-center justify-center border">
                       <User size={20} className="text-muted-foreground" />
                     </div>
                   )}

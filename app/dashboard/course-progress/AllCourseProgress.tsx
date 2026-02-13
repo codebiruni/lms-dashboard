@@ -263,7 +263,7 @@ export default function AllCourseProgress() {
       </div>
 
       {/* ---------- Table ---------- */}
-      <div className="border rounded-lg overflow-hidden">
+      <div className="border rounded overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -495,7 +495,7 @@ export default function AllCourseProgress() {
             <div className="space-y-6">
               {/* Status Cards */}
               <div className="grid grid-cols-4 gap-4">
-                <div className="bg-muted/30 rounded-lg p-3">
+                <div className="bg-muted/30 rounded p-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <TrendingUp size={14} />
                     <span>Progress</span>
@@ -504,7 +504,7 @@ export default function AllCourseProgress() {
                     {selectedProgress.progressPercentage}%
                   </span>
                 </div>
-                <div className="bg-muted/30 rounded-lg p-3">
+                <div className="bg-muted/30 rounded p-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <BookOpen size={14} />
                     <span>Lessons</span>
@@ -513,7 +513,7 @@ export default function AllCourseProgress() {
                     {selectedProgress.completedLessons?.length || 0}/{selectedProgress.totalLessons || 0}
                   </span>
                 </div>
-                <div className="bg-muted/30 rounded-lg p-3">
+                <div className="bg-muted/30 rounded p-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <CheckCircle size={14} />
                     <span>Completed</span>
@@ -525,7 +525,7 @@ export default function AllCourseProgress() {
                     {selectedProgress.isCompleted ? 'Yes' : 'No'}
                   </Badge>
                 </div>
-                <div className="bg-muted/30 rounded-lg p-3">
+                <div className="bg-muted/30 rounded p-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <Calendar size={14} />
                     <span>Completed At</span>
@@ -543,7 +543,7 @@ export default function AllCourseProgress() {
                   <h3 className="text-sm font-medium text-muted-foreground mb-1">
                     Student Information
                   </h3>
-                  <div className="bg-muted/20 rounded-lg p-4">
+                  <div className="bg-muted/20 rounded p-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <p className="text-xs text-muted-foreground">Name</p>
@@ -566,7 +566,7 @@ export default function AllCourseProgress() {
                   <h3 className="text-sm font-medium text-muted-foreground mb-1">
                     Course Information
                   </h3>
-                  <div className="bg-muted/20 rounded-lg p-4">
+                  <div className="bg-muted/20 rounded p-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <p className="text-xs text-muted-foreground">Course Title</p>
@@ -590,7 +590,7 @@ export default function AllCourseProgress() {
                     Completed Lessons ({selectedProgress.completedLessons?.length || 0})
                   </h3>
                   {selectedProgress.completedLessons && selectedProgress.completedLessons.length > 0 ? (
-                    <div className="bg-muted/20 rounded-lg p-4 max-h-50 overflow-y-auto">
+                    <div className="bg-muted/20 rounded p-4 max-h-50 overflow-y-auto">
                       <div className="space-y-2">
                         {selectedProgress.completedLessons.map((lesson: any, idx: number) => (
                           <div key={lesson._id || idx} className="flex items-center justify-between p-2 bg-background rounded border">
@@ -615,7 +615,7 @@ export default function AllCourseProgress() {
                   <h3 className="text-sm font-medium text-muted-foreground mb-1">
                     Progress Overview
                   </h3>
-                  <div className="bg-muted/20 rounded-lg p-4">
+                  <div className="bg-muted/20 rounded p-4">
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span>Overall Progress</span>

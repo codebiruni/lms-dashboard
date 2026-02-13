@@ -261,7 +261,7 @@ export default function AllRecording() {
       </div>
 
       {/* ---------- Table ---------- */}
-      <div className="border rounded-lg overflow-hidden">
+      <div className="border rounded overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -360,7 +360,7 @@ export default function AllRecording() {
                   <TableCell>
                     <div className="flex items-center gap-2">
                       {recording.uploadedBy?.image && (
-                        <div className="relative w-8 h-8 rounded-full overflow-hidden border shrink-0">
+                        <div className="relative w-8 h-8 rounded full overflow-hidden border shrink-0">
                           <Image
                             src={recording.uploadedBy.image}
                             alt={recording.uploadedBy.name || 'Uploader'}
@@ -523,7 +523,7 @@ export default function AllRecording() {
             <div className="space-y-6">
               {/* Status Cards */}
               <div className="grid grid-cols-3 gap-4">
-                <div className="bg-muted/30 rounded-lg p-3">
+                <div className="bg-muted/30 rounded p-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <CheckCircle size={14} />
                     <span>Status</span>
@@ -532,7 +532,7 @@ export default function AllRecording() {
                     {selectedRecording.isDeleted ? 'Deleted' : 'Active'}
                   </Badge>
                 </div>
-                <div className="bg-muted/30 rounded-lg p-3">
+                <div className="bg-muted/30 rounded p-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <Clock size={14} />
                     <span>Duration</span>
@@ -541,7 +541,7 @@ export default function AllRecording() {
                     {selectedRecording.duration || 0} min
                   </span>
                 </div>
-                <div className="bg-muted/30 rounded-lg p-3">
+                <div className="bg-muted/30 rounded p-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <HardDrive size={14} />
                     <span>File Size</span>
@@ -553,7 +553,7 @@ export default function AllRecording() {
               </div>
 
               {/* Video Preview */}
-              <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden">
+              <div className="relative w-full aspect-video bg-black rounded overflow-hidden">
                 <iframe
                   src={getVideoEmbedUrl(selectedRecording.videoUrl)}
                   title={selectedRecording.title}
@@ -576,7 +576,7 @@ export default function AllRecording() {
                   <h3 className="text-sm font-medium text-muted-foreground mb-1">
                     Description
                   </h3>
-                  <div className="bg-muted/20 rounded-lg p-4">
+                  <div className="bg-muted/20 rounded p-4">
                     <p className="whitespace-pre-wrap text-sm leading-relaxed">
                       {selectedRecording.description || 'No description provided'}
                     </p>
@@ -617,10 +617,10 @@ export default function AllRecording() {
                   <h3 className="text-sm font-medium text-muted-foreground mb-1">
                     Uploaded By
                   </h3>
-                  <div className="bg-muted/20 rounded-lg p-3">
+                  <div className="bg-muted/20 rounded p-3">
                     <div className="flex items-center gap-3">
                       {selectedRecording.uploadedBy?.image && (
-                        <div className="relative w-12 h-12 rounded-full overflow-hidden border">
+                        <div className="relative w-12 h-12 rounded full overflow-hidden border">
                           <Image
                             src={selectedRecording.uploadedBy.image}
                             alt={selectedRecording.uploadedBy.name}

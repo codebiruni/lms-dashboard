@@ -208,7 +208,7 @@ export default function AllInstructor() {
                     alt=""
                     width={40}
                     height={40}
-                    className="rounded-full"
+                    className="rounded full"
                   />
                 ) : (
                   <User />

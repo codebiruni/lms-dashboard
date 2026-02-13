@@ -206,7 +206,7 @@ export default function EditCourse({ course, open, onOpenChange, onSuccess }: Ed
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
       <div className="fixed inset-0 overflow-y-auto">
         <div className="flex min-h-full items-center justify-center p-4">
-          <Card className="w-full max-w-4xl rounded-lg shadow-lg border">
+          <Card className="w-full max-w-4xl rounded shadow-lg border">
             <CardHeader className="border-b">
               <div className="flex items-center justify-between">
                 <CardTitle>Edit Course: {course?.title}</CardTitle>
@@ -300,7 +300,7 @@ export default function EditCourse({ course, open, onOpenChange, onSuccess }: Ed
               {/* Thumbnail */}
               <div className="space-y-2">
                 <Label className="required">Thumbnail</Label>
-                <div className="relative h-48 w-full border-2 rounded-lg border-dashed flex items-center justify-center cursor-pointer hover:border-primary transition-colors"
+                <div className="relative h-48 w-full border-2 rounded border-dashed flex items-center justify-center cursor-pointer hover:border-primary transition-colors"
                      onClick={() => document.getElementById('edit-thumbnail')?.click()}>
                   <input 
                     type="file" 
@@ -315,7 +315,7 @@ export default function EditCourse({ course, open, onOpenChange, onSuccess }: Ed
                         src={thumbnailPreview || existingThumbnail || ''} 
                         alt="Thumbnail" 
                         fill 
-                        className="object-cover rounded-lg" 
+                        className="object-cover rounded" 
                       />
                       <Button
                         type="button"

@@ -237,7 +237,7 @@ export default function AllAssignment() {
       </div>
 
       {/* ---------------- Table ---------------- */}
-      <div className="border rounded-lg overflow-hidden">
+      <div className="border rounded overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -503,7 +503,7 @@ export default function AllAssignment() {
             <div className="space-y-6">
               {/* Status Cards */}
               <div className="grid grid-cols-3 gap-4">
-                <div className="bg-muted/30 rounded-lg p-3">
+                <div className="bg-muted/30 rounded p-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <CheckCircle size={14} />
                     <span>Published</span>
@@ -514,7 +514,7 @@ export default function AllAssignment() {
                     <Badge variant="secondary">No</Badge>
                   )}
                 </div>
-                <div className="bg-muted/30 rounded-lg p-3">
+                <div className="bg-muted/30 rounded p-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <Trash2 size={14} />
                     <span>Deleted</span>
@@ -523,7 +523,7 @@ export default function AllAssignment() {
                     {selectedAssignment.isDeleted ? 'Yes' : 'No'}
                   </Badge>
                 </div>
-                <div className="bg-muted/30 rounded-lg p-3">
+                <div className="bg-muted/30 rounded p-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <Users size={14} />
                     <span>Submissions</span>
@@ -596,7 +596,7 @@ export default function AllAssignment() {
                   <h3 className="text-sm font-medium text-muted-foreground mb-1">
                     Description
                   </h3>
-                  <div className="bg-muted/20 rounded-lg p-4">
+                  <div className="bg-muted/20 rounded p-4">
                     <p className="whitespace-pre-wrap text-sm leading-relaxed">
                       {selectedAssignment.description || 'No description provided'}
                     </p>
@@ -640,7 +640,7 @@ export default function AllAssignment() {
                     <h3 className="text-sm font-medium text-muted-foreground mb-2">
                       Recent Submissions
                     </h3>
-                    <div className="bg-muted/20 rounded-lg p-3 max-h-37.5 overflow-y-auto">
+                    <div className="bg-muted/20 rounded p-3 max-h-37.5 overflow-y-auto">
                       {selectedAssignment.submissions.slice(0, 5).map((sub: any, idx: number) => (
                         <div key={idx} className="flex justify-between items-center py-2 border-b last:border-0">
                           <span className="text-sm">Student #{idx + 1}</span>

@@ -280,7 +280,7 @@ export default function AllMeeting() {
       </div>
 
       {/* ---------- Table ---------- */}
-      <div className="border rounded-lg overflow-hidden">
+      <div className="border rounded overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -524,7 +524,7 @@ export default function AllMeeting() {
             <div className="space-y-6">
               {/* Status Cards */}
               <div className="grid grid-cols-3 gap-4">
-                <div className="bg-muted/30 rounded-lg p-3">
+                <div className="bg-muted/30 rounded p-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <CheckCircle size={14} />
                     <span>Status</span>
@@ -536,7 +536,7 @@ export default function AllMeeting() {
                     {getStatusBadge(selectedMeeting.status, selectedMeeting.isDeleted).label}
                   </Badge>
                 </div>
-                <div className="bg-muted/30 rounded-lg p-3">
+                <div className="bg-muted/30 rounded p-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <Video size={14} />
                     <span>Platform</span>
@@ -545,7 +545,7 @@ export default function AllMeeting() {
                     {selectedMeeting.platform?.replace('-', ' ') || 'Other'}
                   </span>
                 </div>
-                <div className="bg-muted/30 rounded-lg p-3">
+                <div className="bg-muted/30 rounded p-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <Calendar size={14} />
                     <span>Duration</span>

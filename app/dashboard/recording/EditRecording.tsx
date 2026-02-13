@@ -152,7 +152,7 @@ export default function EditRecording({
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
       <div className="fixed inset-0 overflow-y-auto">
         <div className="flex min-h-full items-center justify-center p-4">
-          <Card className="w-full max-w-3xl rounded-lg shadow-lg border">
+          <Card className="w-full max-w-3xl rounded shadow-lg border">
             <CardHeader className="border-b">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-xl font-semibold flex items-center gap-2">
@@ -173,7 +173,7 @@ export default function EditRecording({
               {videoUrl && (
                 <div className="space-y-2">
                   <Label>Video Preview</Label>
-                  <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden">
+                  <div className="relative w-full aspect-video bg-black rounded overflow-hidden">
                     <iframe
                       src={convertToEmbedUrl(videoUrl)}
                       title={title || 'Video preview'}
@@ -255,7 +255,7 @@ export default function EditRecording({
                       href={videoUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center px-3 border rounded-md hover:bg-muted"
+                      className="inline-flex items-center px-3 border rounded hover:bg-muted"
                     >
                       <LinkIcon size={16} />
                     </a>
@@ -301,7 +301,7 @@ export default function EditRecording({
 
               {/* Current Status Badge */}
               {recording && (
-                <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-lg">
+                <div className="flex items-center gap-2 p-3 bg-muted/30 rounded">
                   <Badge variant="outline">Current Status</Badge>
                   <Badge variant={recording.isDeleted ? 'destructive' : 'secondary'}>
                     {recording.isDeleted ? 'Deleted' : 'Active'}

@@ -220,7 +220,7 @@ export default function CreateLiveClass() {
           </div>
 
           {/* SMART MEETING LINK SECTION */}
-          <div className="space-y-3 border p-4 rounded-md bg-slate-50">
+          <div className="space-y-3 border p-4 rounded bg-slate-50">
             <Label>Meeting Link</Label>
 
             <div className="flex gap-2">

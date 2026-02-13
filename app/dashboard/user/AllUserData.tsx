@@ -186,7 +186,7 @@ export default function AllUserData() {
               <TableCell>
                 <div className="flex items-center justify-center">
                   {user.image ? (
-                    <div className="relative w-10 h-10 rounded-full overflow-hidden border">
+                    <div className="relative w-10 h-10 rounded full overflow-hidden border">
                       <Image
                         src={user.image}
                         alt={user.name || 'User'}
@@ -196,7 +196,7 @@ export default function AllUserData() {
                       />
                     </div>
                   ) : (
-                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center border">
+                    <div className="w-10 h-10 rounded full bg-muted flex items-center justify-center border">
                       <User size={20} className="text-muted-foreground" />
                     </div>
                   )}

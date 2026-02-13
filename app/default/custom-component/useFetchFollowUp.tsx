@@ -6,35 +6,47 @@ import GETDATA from "../functions/GetData"
 
 /* -------------------- Types -------------------- */
 
-type UseFetchReviewParams = {
+type UseFetchFollowUpParams = {
   page?: number
   limit?: number
   search?: string
-  rating?: number | string
+  courseId?: string
+  userId?: string
+  status?: string
   deleted?: boolean
-  sortBy?: 'createdAt' | 'rating' | 'name'
+  sortBy?: 'followUpDate' | 'createdAt' | 'status'
   sortOrder?: 'asc' | 'desc'
-  minRating?: number
-  maxRating?: number
   startDate?: string
   endDate?: string
 }
 
-export type Review = {
+export type FollowUp = {
   _id: string
-  name: string
-  courseName: string
-  image: string
-  description: string
-  rating: number
-  comment?: string
+  user: {
+    _id: string
+    id: string
+    name: string
+    email: string
+    phone?: string
+    role: string
+    image?: string
+    status: string
+  }
+  courseId?: {
+    _id: string
+    title: string
+    slug?: string
+  }
+  note: string
+  followUpDate: string
+  status: 'requested' | 'approved' | 'will-try'
   isDeleted: boolean
   createdAt: string
   updatedAt: string
   __v?: number
 }
 
-type FetchReviewResponse = {
+type FetchFollowUpResponse = {
   success: boolean
   message: string
   data: {
@@ -44,25 +56,25 @@ type FetchReviewResponse = {
       total: number
       totalPages: number
     }
-    data: Review[]
+    data: FollowUp[]
   }
 }
 
 /* -------------------- Hook -------------------- */
 
-export default function useFetchReview({
+export default function useFetchFollowUp({
   page = 1,
   limit = 10,
   search = "",
-  rating,
+  courseId,
+  userId,
+  status,
   deleted = false,
-  sortBy = 'createdAt',
-  sortOrder = 'desc',
-  minRating,
-  maxRating,
+  sortBy = 'followUpDate',
+  sortOrder = 'asc',
   startDate,
   endDate,
-}: UseFetchReviewParams) {
+}: UseFetchFollowUpParams) {
 
   // Build query string dynamically
   const params: Record<string, string> = {
@@ -74,9 +86,9 @@ export default function useFetchReview({
   }
 
   if (search) params.search = search
-  if (rating !== undefined && rating !== 'all') params.rating = String(rating)
-  if (minRating !== undefined) params.minRating = String(minRating)
-  if (maxRating !== undefined) params.maxRating = String(maxRating)
+  if (courseId) params.courseId = courseId
+  if (userId) params.userId = userId
+  if (status && status !== 'all') params.status = status
   if (startDate) params.startDate = startDate
   if (endDate) params.endDate = endDate
 
@@ -91,34 +103,34 @@ export default function useFetchReview({
     isError,
     isSuccess,
     isPlaceholderData
-  } = useQuery<FetchReviewResponse>({
+  } = useQuery<FetchFollowUpResponse>({
     queryKey: [
-      "reviews",
+      "followUps",
       page,
       limit,
       search,
-      rating,
+      courseId,
+      userId,
+      status,
       deleted,
       sortBy,
       sortOrder,
-      minRating,
-      maxRating,
       startDate,
       endDate,
     ],
     queryFn: async () => {
       try {
-        const res = await GETDATA<FetchReviewResponse>(
-          `/v1/review?${queryString}`
+        const res = await GETDATA<FetchFollowUpResponse>(
+          `/v1/follow-up?${queryString}`
         )
 
         if (!res?.success) {
-          throw new Error(res?.message || "Failed to fetch reviews")
+          throw new Error(res?.message || "Failed to fetch follow-ups")
         }
 
         return res
       } catch (error: any) {
-        throw new Error(error?.message || "Network error while fetching reviews")
+        throw new Error(error?.message || "Network error while fetching follow-ups")
       }
     },
     placeholderData: keepPreviousData,
@@ -129,7 +141,7 @@ export default function useFetchReview({
   })
 
   // Process and return data
-  const reviews = data?.data?.data ?? []
+  const followUps = data?.data?.data ?? []
   const meta = data?.data?.meta ?? {
     page,
     limit,
@@ -138,20 +150,18 @@ export default function useFetchReview({
   }
 
   // Calculate stats
-  const averageRating = reviews.length > 0
-    ? Number((reviews.reduce((acc: number, r: Review) => acc + r.rating, 0) / reviews.length).toFixed(1))
-    : 0
+  const upcomingCount = followUps.filter((f: FollowUp) => 
+    !f.isDeleted && new Date(f.followUpDate) > new Date()
+  ).length
 
-  const ratingDistribution = {
-    1: reviews.filter((r: Review) => r.rating === 1).length,
-    2: reviews.filter((r: Review) => r.rating === 2).length,
-    3: reviews.filter((r: Review) => r.rating === 3).length,
-    4: reviews.filter((r: Review) => r.rating === 4).length,
-    5: reviews.filter((r: Review) => r.rating === 5).length,
+  const statusCounts = {
+    requested: followUps.filter((f: FollowUp) => f.status === 'requested').length,
+    approved: followUps.filter((f: FollowUp) => f.status === 'approved').length,
+    willTry: followUps.filter((f: FollowUp) => f.status === 'will-try').length,
   }
 
   return {
-    reviews,
+    followUps,
     meta,
     isLoading,
     isFetching,
@@ -165,10 +175,9 @@ export default function useFetchReview({
     totalPages: meta.totalPages,
     pageSize: meta.limit,
     stats: {
-      averageRating,
-      ratingDistribution,
-      totalReviews: reviews.length,
-      deletedCount: reviews.filter((r: Review) => r.isDeleted).length,
+      upcomingCount,
+      statusCounts,
+      deletedCount: followUps.filter((f: FollowUp) => f.isDeleted).length,
     },
   }
 }

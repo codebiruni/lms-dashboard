@@ -305,7 +305,7 @@ export default function AllEnrollment() {
       </div>
 
       {/* ---------- Table ---------- */}
-      <div className="border rounded-lg overflow-hidden">
+      <div className="border rounded overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -363,7 +363,7 @@ export default function AllEnrollment() {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         {enrollment.student?.image && (
-                          <div className="relative w-10 h-10 rounded-full overflow-hidden border shrink-0">
+                          <div className="relative w-10 h-10 rounded full overflow-hidden border shrink-0">
                             <Image
                               src={enrollment.student.image}
                               alt={enrollment.student.id || 'Student'}
@@ -555,7 +555,7 @@ export default function AllEnrollment() {
             <div className="space-y-6">
               {/* Status Cards */}
               <div className="grid grid-cols-4 gap-4">
-                <div className="bg-muted/30 rounded-lg p-3">
+                <div className="bg-muted/30 rounded p-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <CheckCircle size={14} />
                     <span>Status</span>
@@ -567,7 +567,7 @@ export default function AllEnrollment() {
                     {getStatusBadge(selectedEnrollment.enrollmentStatus).label}
                   </Badge>
                 </div>
-                <div className="bg-muted/30 rounded-lg p-3">
+                <div className="bg-muted/30 rounded p-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <DollarSign size={14} />
                     <span>Payment</span>
@@ -579,14 +579,14 @@ export default function AllEnrollment() {
                     {getPaymentBadge(selectedEnrollment.paymentStatus).label}
                   </Badge>
                 </div>
-                <div className="bg-muted/30 rounded-lg p-3">
+                <div className="bg-muted/30 rounded p-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <TrendingUp size={14} />
                     <span>Progress</span>
                   </div>
                   <span className="text-xl font-bold">{selectedEnrollment.progress}%</span>
                 </div>
-                <div className="bg-muted/30 rounded-lg p-3">
+                <div className="bg-muted/30 rounded p-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <Calendar size={14} />
                     <span>Enrolled</span>
@@ -602,10 +602,10 @@ export default function AllEnrollment() {
                   <h3 className="text-sm font-medium text-muted-foreground mb-1">
                     Student Information
                   </h3>
-                  <div className="bg-muted/20 rounded-lg p-4">
+                  <div className="bg-muted/20 rounded p-4">
                     <div className="flex gap-4">
                       {selectedEnrollment.student?.image && (
-                        <div className="relative w-16 h-16 rounded-full overflow-hidden border">
+                        <div className="relative w-16 h-16 rounded full overflow-hidden border">
                           <Image
                             src={selectedEnrollment.student.image}
                             alt={selectedEnrollment.student.id || 'Student'}
@@ -637,7 +637,7 @@ export default function AllEnrollment() {
                   <h3 className="text-sm font-medium text-muted-foreground mb-1">
                     Course Information
                   </h3>
-                  <div className="bg-muted/20 rounded-lg p-4">
+                  <div className="bg-muted/20 rounded p-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <p className="text-xs text-muted-foreground">Course Title</p>
@@ -656,7 +656,7 @@ export default function AllEnrollment() {
                   <h3 className="text-sm font-medium text-muted-foreground mb-1">
                     Payment Details
                   </h3>
-                  <div className="bg-muted/20 rounded-lg p-4">
+                  <div className="bg-muted/20 rounded p-4">
                     <div className="grid grid-cols-3 gap-4">
                       <div>
                         <p className="text-xs text-muted-foreground">Total Amount</p>
@@ -679,15 +679,15 @@ export default function AllEnrollment() {
                   <h3 className="text-sm font-medium text-muted-foreground mb-1">
                     Course Progress
                   </h3>
-                  <div className="bg-muted/20 rounded-lg p-4">
+                  <div className="bg-muted/20 rounded p-4">
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span>Completion</span>
                         <span className="font-bold">{selectedEnrollment.progress}%</span>
                       </div>
-                      <div className="w-full bg-muted rounded-full h-2.5">
+                      <div className="w-full bg-muted rounded full h-2.5">
                         <div 
-                          className="bg-green-600 h-2.5 rounded-full" 
+                          className="bg-green-600 h-2.5 rounded full" 
                           style={{ width: `${selectedEnrollment.progress}%` }}
                         />
                       </div>

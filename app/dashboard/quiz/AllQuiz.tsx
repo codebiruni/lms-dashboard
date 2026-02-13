@@ -250,7 +250,7 @@ export default function AllQuiz() {
       </div>
 
       {/* ---------------- Table ---------------- */}
-      <div className="border rounded-lg overflow-hidden">
+      <div className="border rounded overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -511,7 +511,7 @@ export default function AllQuiz() {
             <div className="space-y-6">
               {/* Status Cards */}
               <div className="grid grid-cols-4 gap-4">
-                <div className="bg-muted/30 rounded-lg p-3">
+                <div className="bg-muted/30 rounded p-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <CheckCircle size={14} />
                     <span>Published</span>
@@ -522,7 +522,7 @@ export default function AllQuiz() {
                     <Badge variant="secondary">No</Badge>
                   )}
                 </div>
-                <div className="bg-muted/30 rounded-lg p-3">
+                <div className="bg-muted/30 rounded p-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <Trash2 size={14} />
                     <span>Deleted</span>
@@ -531,7 +531,7 @@ export default function AllQuiz() {
                     {selectedQuiz.isDeleted ? 'Yes' : 'No'}
                   </Badge>
                 </div>
-                <div className="bg-muted/30 rounded-lg p-3">
+                <div className="bg-muted/30 rounded p-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <FileQuestion size={14} />
                     <span>Questions</span>
@@ -540,7 +540,7 @@ export default function AllQuiz() {
                     {selectedQuiz.questions?.length || 0}
                   </span>
                 </div>
-                <div className="bg-muted/30 rounded-lg p-3">
+                <div className="bg-muted/30 rounded p-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <Clock size={14} />
                     <span>Duration</span>
@@ -593,7 +593,7 @@ export default function AllQuiz() {
                   <h3 className="text-sm font-medium text-muted-foreground mb-1">
                     Description
                   </h3>
-                  <div className="bg-muted/20 rounded-lg p-4">
+                  <div className="bg-muted/20 rounded p-4">
                     <p className="whitespace-pre-wrap text-sm leading-relaxed">
                       {selectedQuiz.description || 'No description provided'}
                     </p>
@@ -642,7 +642,7 @@ export default function AllQuiz() {
                   </h3>
                   <div className="space-y-4">
                     {selectedQuiz.questions?.map((q: Question, idx: number) => (
-                      <div key={q._id || idx} className="border rounded-lg p-4 bg-muted/10">
+                      <div key={q._id || idx} className="border rounded p-4 bg-muted/10">
                         <div className="flex justify-between items-start mb-2">
                           <h4 className="font-medium">
                             Question {idx + 1}: {q.question}

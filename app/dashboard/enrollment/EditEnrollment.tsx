@@ -142,7 +142,7 @@ export default function EditEnrollment({
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
       <div className="fixed inset-0 overflow-y-auto">
         <div className="flex min-h-full items-center justify-center p-4">
-          <Card className="w-full max-w-3xl rounded-lg shadow-lg border">
+          <Card className="w-full max-w-3xl rounded shadow-lg border">
             <CardHeader className="border-b">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-xl font-semibold flex items-center gap-2">
@@ -312,7 +312,7 @@ export default function EditEnrollment({
               </div>
 
               {/* Current Status Badge */}
-              <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-lg">
+              <div className="flex items-center gap-2 p-3 bg-muted/30 rounded">
                 <Badge variant="outline">Current Status</Badge>
                 {enrollment.isDeleted ? (
                   <Badge variant="destructive">Deleted</Badge>

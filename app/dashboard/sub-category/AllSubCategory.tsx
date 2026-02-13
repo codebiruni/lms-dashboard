@@ -316,7 +316,7 @@ export default function AllSubCategory() {
           </div>
 
           {/* ------------------ TABLE ------------------ */}
-          <div className="border rounded-lg overflow-hidden">
+          <div className="border rounded overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -552,7 +552,7 @@ export default function AllSubCategory() {
                   </SelectContent>
                 </Select>
 
-                <div className="mt-4 p-3 bg-muted/30 rounded-lg">
+                <div className="mt-4 p-3 bg-muted/30 rounded">
                   {deleteType === "soft" ? (
                     <p className="text-sm text-muted-foreground flex items-center gap-2">
                       <Trash2 className="h-4 w-4 text-yellow-600" />
@@ -602,10 +602,10 @@ export default function AllSubCategory() {
                       alt={selectedSubCategory.name}
                       width={120}
                       height={120}
-                      className="rounded-lg object-cover border"
+                      className="rounded object-cover border"
                     />
                   ) : (
-                    <div className="flex h-30 w-30 items-center justify-center rounded-lg bg-muted">
+                    <div className="flex h-30 w-30 items-center justify-center rounded bg-muted">
                       <ImageIcon className="h-12 w-12 text-muted-foreground" />
                     </div>
                   )}

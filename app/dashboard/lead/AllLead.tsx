@@ -3,7 +3,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import useFetchReview from '@/app/default/custom-component/useFetchReview'
+import useFetchLead from '@/app/default/custom-component/useFetchLead'
 import PATCHDATA from '@/app/default/functions/Patch'
 import DELETEDATA from '@/app/default/functions/DeleteData'
 
@@ -25,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+
 import {
   Dialog,
   DialogContent,
@@ -36,6 +37,7 @@ import {
 
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+
 import {
   Eye,
   Pencil,
@@ -47,25 +49,26 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader2,
-  Star,
+  Mail,
+  User,
+  FileText,
 } from 'lucide-react'
-import Image from 'next/image'
-import EditReview from './EditReview'
+
+import EditLead from './EditLead'
 import { toast } from 'sonner'
 
 /* -------------------- Types -------------------- */
 
-interface Review {
+interface Lead {
   _id: string
   name: string
-  courseName: string
-  image: string
-  description: string
-  rating: number
-  comment?: string
+  email?: string
+  description?: string
+  status: 'new' | 'contacted' | 'qualified' | 'lost' | 'converted'
   isDeleted: boolean
   createdAt: string
   updatedAt: string
+  __v?: number
 }
 
 interface Meta {
@@ -76,24 +79,25 @@ interface Meta {
 }
 
 /* -------------------- SKELETON -------------------- */
-function ReviewsTableSkeleton() {
+function LeadTableSkeleton() {
   return (
     <div className="space-y-4">
       <div className="flex gap-3">
         <Skeleton className="h-10 w-64" />
-        <Skeleton className="h-10 w-32" />
+        <Skeleton className="h-10 w-40" />
+        <Skeleton className="h-10 w-40" />
       </div>
       <div className="border rounded overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="w-8 text-center">#</TableHead>
-              <TableHead>Image</TableHead>
-              <TableHead>Course</TableHead>
               <TableHead>Name</TableHead>
-              <TableHead>Rating</TableHead>
-              <TableHead>Comment</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Description</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Created</TableHead>
+              <TableHead>Deleted</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -101,11 +105,11 @@ function ReviewsTableSkeleton() {
             {[...Array(5)].map((_, i) => (
               <TableRow key={i}>
                 <TableCell><Skeleton className="h-5 w-6 mx-auto" /></TableCell>
-                <TableCell><Skeleton className="h-10 w-10 rounded full" /></TableCell>
                 <TableCell><Skeleton className="h-5 w-32" /></TableCell>
-                <TableCell><Skeleton className="h-5 w-28" /></TableCell>
-                <TableCell><Skeleton className="h-5 w-20" /></TableCell>
                 <TableCell><Skeleton className="h-5 w-40" /></TableCell>
+                <TableCell><Skeleton className="h-5 w-40" /></TableCell>
+                <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                 <TableCell><Skeleton className="h-5 w-16" /></TableCell>
                 <TableCell>
                   <div className="flex justify-end gap-1">
@@ -123,30 +127,33 @@ function ReviewsTableSkeleton() {
   )
 }
 
-/* -------------------- Star Rating Component -------------------- */
-function StarRating({ rating }: { rating: number }) {
+/* -------------------- Status Badge Component -------------------- */
+function StatusBadge({ status }: { status: string }) {
+  const variants: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'outline', className?: string }> = {
+    new: { variant: 'default', className: 'bg-blue-600' },
+    contacted: { variant: 'secondary', className: 'bg-purple-100 text-purple-800 hover:bg-purple-100' },
+    qualified: { variant: 'default', className: 'bg-green-600' },
+    lost: { variant: 'destructive' },
+    converted: { variant: 'default', className: 'bg-emerald-600' },
+  }
+
+  const config = variants[status] || { variant: 'secondary' }
+
   return (
-    <div className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <Star
-          key={star}
-          className={`h-4 w-4 ${
-            star <= rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground'
-          }`}
-        />
-      ))}
-    </div>
+    <Badge variant={config.variant} className={config.className}>
+      {status.charAt(0).toUpperCase() + status.slice(1)}
+    </Badge>
   )
 }
 
 /* -------------------- Main Component -------------------- */
 
-export default function AllReview() {
+export default function AllLead() {
   /* ---------- Filters & Pagination ---------- */
-  const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const [limit] = useState(10)
-  const [rating, setRating] = useState<string | undefined>()
+  const [search, setSearch] = useState('')
+  const [status, setStatus] = useState<string | undefined>()
   const [deleted, setDeleted] = useState<'false' | 'true'>('false')
 
   /* ---------- Dialogs ---------- */
@@ -154,14 +161,14 @@ export default function AllReview() {
   const [detailsOpen, setDetailsOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [deleteType, setDeleteType] = useState<'soft' | 'hard' | 'restore'>('soft')
-  const [selectedReview, setSelectedReview] = useState<Review | null>(null)
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
 
-  /* ---------- Fetch Reviews ---------- */
-  const { reviews, meta, isLoading, isFetching, refetch } = useFetchReview({
+  /* ---------- Fetch Leads ---------- */
+  const { leads, meta, isLoading, isFetching, refetch } = useFetchLead({
     page,
     limit,
     search,
-    rating: rating ? Number(rating) : undefined,
+    status,
     deleted: deleted === 'true',
   })
 
@@ -169,21 +176,21 @@ export default function AllReview() {
 
   /* ---------- Handlers ---------- */
   const confirmAction = async () => {
-    if (!selectedReview) return
+    if (!selectedLead) return
 
     try {
       let url = ""
       let successMessage = ""
 
       if (deleteType === 'restore') {
-        url = `/v1/review/restore/${selectedReview._id}`
-        successMessage = 'Review restored successfully'
+        url = `/v1/lead/restore/${selectedLead._id}`
+        successMessage = 'Lead restored successfully'
       } else if (deleteType === 'hard') {
-        url = `/v1/review/hard/${selectedReview._id}`
-        successMessage = 'Review permanently deleted'
+        url = `/v1/lead/hard/${selectedLead._id}`
+        successMessage = 'Lead permanently deleted'
       } else {
-        url = `/v1/review/soft/${selectedReview._id}`
-        successMessage = 'Review moved to trash'
+        url = `/v1/lead/soft/${selectedLead._id}`
+        successMessage = 'Lead moved to trash'
       }
 
       const res = deleteType === 'restore'
@@ -200,18 +207,18 @@ export default function AllReview() {
       toast.error(err.message || 'Action failed')
     } finally {
       setDeleteOpen(false)
-      setSelectedReview(null)
+      setSelectedLead(null)
     }
   }
 
-  const handleEditClick = (review: Review) => {
-    setSelectedReview(review)
+  const handleEditClick = (lead: Lead) => {
+    setSelectedLead(lead)
     setEditOpen(true)
   }
 
   const handleEditSuccess = () => {
     setEditOpen(false)
-    setSelectedReview(null)
+    setSelectedLead(null)
     refetch()
   }
 
@@ -224,19 +231,21 @@ export default function AllReview() {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     })
   }
 
   /* -------------------- Loading State -------------------- */
-  if (isLoading) return <ReviewsTableSkeleton />
+  if (isLoading) return <LeadTableSkeleton />
 
   /* ---------------- UI ---------------- */
   return (
     <>
-      {/* Edit Review Dialog */}
-      {selectedReview && (
-        <EditReview
-          review={selectedReview}
+      {/* Edit Lead Dialog */}
+      {selectedLead && (
+        <EditLead
+          lead={selectedLead}
           open={editOpen}
           onOpenChange={setEditOpen}
           onSuccess={handleEditSuccess}
@@ -245,9 +254,9 @@ export default function AllReview() {
 
       <div className="space-y-6 p-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold">Reviews</h2>
+          <h2 className="text-2xl font-bold">Leads</h2>
           <Button asChild>
-            <a href="/dashboard/review/create">Add Review</a>
+            <a href="/dashboard/lead/create">Add Lead</a>
           </Button>
         </div>
 
@@ -256,7 +265,7 @@ export default function AllReview() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Search by course or name..."
+              placeholder="Search leads..."
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value)
@@ -267,22 +276,22 @@ export default function AllReview() {
           </div>
 
           <Select
-            value={rating || 'all'}
+            value={status || 'all'}
             onValueChange={(v) => {
-              setRating(v === 'all' ? undefined : v)
+              setStatus(v === 'all' ? undefined : v)
               setPage(1)
             }}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Filter by rating" />
+              <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Ratings</SelectItem>
-              <SelectItem value="5">5 Stars</SelectItem>
-              <SelectItem value="4">4 Stars</SelectItem>
-              <SelectItem value="3">3 Stars</SelectItem>
-              <SelectItem value="2">2 Stars</SelectItem>
-              <SelectItem value="1">1 Star</SelectItem>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="new">New</SelectItem>
+              <SelectItem value="contacted">Contacted</SelectItem>
+              <SelectItem value="qualified">Qualified</SelectItem>
+              <SelectItem value="lost">Lost</SelectItem>
+              <SelectItem value="converted">Converted</SelectItem>
             </SelectContent>
           </Select>
 
@@ -313,76 +322,61 @@ export default function AllReview() {
             <TableHeader>
               <TableRow>
                 <TableHead className="w-8 text-center">#</TableHead>
-                <TableHead>Image</TableHead>
-                <TableHead>Course</TableHead>
-                <TableHead>Reviewer</TableHead>
-                <TableHead>Rating</TableHead>
-                <TableHead>Comment</TableHead>
-                <TableHead>Created</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Email</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Created</TableHead>
+                <TableHead>Deleted</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
 
             <TableBody>
-              {reviews.length === 0 && (
+              {leads.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={9} className="py-10 text-center text-muted-foreground">
-                    No reviews found
+                  <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
+                    No leads found
                   </TableCell>
                 </TableRow>
               )}
 
-              {reviews.map((review: any, index: number) => (
-                <TableRow key={review._id}>
+              {leads.map((lead: Lead, index: number) => (
+                <TableRow key={lead._id}>
                   <TableCell className="text-center font-medium">
                     {getSerialNumber(index)}
                   </TableCell>
 
                   <TableCell>
-                    <div className="flex items-center justify-center">
-                      {review.image ? (
-                        <div className="relative w-10 h-10 rounded full overflow-hidden border">
-                          <Image
-                            src={review.image}
-                            alt={review.name || 'Review'}
-                            fill
-                            className="object-cover"
-                            sizes="40px"
-                          />
-                        </div>
-                      ) : (
-                        <div className="w-10 h-10 rounded full bg-muted flex items-center justify-center border">
-                          <span className="text-xs text-muted-foreground">N/A</span>
-                        </div>
-                      )}
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium">{lead.name}</span>
                     </div>
                   </TableCell>
-
-                  <TableCell className="max-w-37.5">
-                    <div className="truncate font-medium">{review.courseName}</div>
-                    <div className="text-xs text-muted-foreground truncate">
-                      {review.description}
-                    </div>
-                  </TableCell>
-
-                  <TableCell>{review.name}</TableCell>
 
                   <TableCell>
-                    <StarRating rating={review.rating} />
+                    {lead.email ? (
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">{lead.email}</span>
+                      </div>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">—</span>
+                    )}
                   </TableCell>
 
-                  <TableCell className="max-w-50">
-                    <div className="truncate">{review.comment || '—'}</div>
+                
+
+                  <TableCell>
+                    <StatusBadge status={lead.status} />
                   </TableCell>
 
                   <TableCell className="text-sm text-muted-foreground">
-                    {formatDate(review.createdAt)}
+                    {formatDate(lead.createdAt).split(',')[0]}
                   </TableCell>
 
                   <TableCell>
-                    <Badge variant={review.isDeleted ? 'destructive' : 'default'}>
-                      {review.isDeleted ? 'Deleted' : 'Active'}
+                    <Badge variant={lead.isDeleted ? 'destructive' : 'secondary'}>
+                      {lead.isDeleted ? 'Deleted' : 'Active'}
                     </Badge>
                   </TableCell>
 
@@ -393,7 +387,7 @@ export default function AllReview() {
                         size="icon"
                         variant="ghost"
                         onClick={() => {
-                          setSelectedReview(review)
+                          setSelectedLead(lead)
                           setDetailsOpen(true)
                         }}
                         title="View Details"
@@ -401,14 +395,14 @@ export default function AllReview() {
                         <Eye className="h-4 w-4" />
                       </Button>
 
-                      {!review.isDeleted ? (
+                      {!lead.isDeleted ? (
                         <>
                           {/* Edit Button */}
                           <Button
                             size="icon"
                             variant="ghost"
-                            onClick={() => handleEditClick(review)}
-                            title="Edit Review"
+                            onClick={() => handleEditClick(lead)}
+                            title="Edit Lead"
                           >
                             <Pencil className="h-4 w-4" />
                           </Button>
@@ -419,7 +413,7 @@ export default function AllReview() {
                             variant="ghost"
                             className="text-destructive hover:text-destructive"
                             onClick={() => {
-                              setSelectedReview(review)
+                              setSelectedLead(lead)
                               setDeleteType('soft')
                               setDeleteOpen(true)
                             }}
@@ -436,11 +430,11 @@ export default function AllReview() {
                             variant="ghost"
                             className="text-green-600 hover:text-green-700"
                             onClick={() => {
-                              setSelectedReview(review)
+                              setSelectedLead(lead)
                               setDeleteType('restore')
                               setDeleteOpen(true)
                             }}
-                            title="Restore Review"
+                            title="Restore Lead"
                           >
                             <RotateCcw className="h-4 w-4" />
                           </Button>
@@ -451,7 +445,7 @@ export default function AllReview() {
                             variant="ghost"
                             className="text-destructive hover:text-destructive"
                             onClick={() => {
-                              setSelectedReview(review)
+                              setSelectedLead(lead)
                               setDeleteType('hard')
                               setDeleteOpen(true)
                             }}
@@ -473,7 +467,7 @@ export default function AllReview() {
         {meta.total > 0 && (
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">
-              Showing {(page - 1) * limit + 1}–{Math.min(page * limit, meta.total)} of {meta.total} reviews
+              Showing {(page - 1) * limit + 1}–{Math.min(page * limit, meta.total)} of {meta.total} leads
             </span>
 
             <div className="flex items-center gap-2">
@@ -509,15 +503,15 @@ export default function AllReview() {
           <DialogHeader>
             <DialogTitle>
               {deleteType === 'soft'
-                ? 'Delete Review?'
+                ? 'Delete Lead?'
                 : deleteType === 'hard'
-                ? 'Permanently Delete Review?'
-                : 'Restore Review?'}
+                ? 'Permanently Delete Lead?'
+                : 'Restore Lead?'}
             </DialogTitle>
             <DialogDescription>
-              {deleteType === 'soft' && 'This review will be moved to trash. You can restore it later.'}
-              {deleteType === 'hard' && 'This action cannot be undone. The review will be permanently deleted.'}
-              {deleteType === 'restore' && 'The review will be restored and become visible again.'}
+              {deleteType === 'soft' && 'This lead will be moved to trash. You can restore it later.'}
+              {deleteType === 'hard' && 'This action cannot be undone. The lead will be permanently deleted.'}
+              {deleteType === 'restore' && 'The lead will be restored and become visible again.'}
             </DialogDescription>
           </DialogHeader>
 
@@ -525,7 +519,7 @@ export default function AllReview() {
             <div className="py-2">
               <div className="p-3 bg-destructive/10 rounded flex items-center gap-2 text-destructive">
                 <AlertTriangle className="h-4 w-4" />
-                <span className="text-sm">This will permanently remove this review.</span>
+                <span className="text-sm">This will permanently remove this lead record.</span>
               </div>
             </div>
           )}
@@ -540,7 +534,7 @@ export default function AllReview() {
             >
               {deleteType === 'soft' && 'Move to Trash'}
               {deleteType === 'hard' && 'Permanently Delete'}
-              {deleteType === 'restore' && 'Restore Review'}
+              {deleteType === 'restore' && 'Restore Lead'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -551,69 +545,59 @@ export default function AllReview() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">
-              Review Details
+              Lead Details
             </DialogTitle>
           </DialogHeader>
 
-          {selectedReview && (
+          {selectedLead && (
             <div className="space-y-4 py-3">
-              <div className="flex justify-center">
-                {selectedReview.image ? (
-                  <div className="relative w-24 h-24 rounded full overflow-hidden border">
-                    <Image
-                      src={selectedReview.image}
-                      alt={selectedReview.name}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                ) : (
-                  <div className="w-24 h-24 rounded full bg-muted flex items-center justify-center border">
-                    <span className="text-muted-foreground">No Image</span>
-                  </div>
-                )}
-              </div>
-
               <div className="space-y-2">
                 <div className="grid grid-cols-3 gap-1 text-sm">
                   <span className="text-muted-foreground">Name:</span>
-                  <span className="col-span-2 font-medium">{selectedReview.name}</span>
+                  <span className="col-span-2 font-medium">{selectedLead.name}</span>
                 </div>
+
                 <div className="grid grid-cols-3 gap-1 text-sm">
-                  <span className="text-muted-foreground">Course:</span>
-                  <span className="col-span-2">{selectedReview.courseName}</span>
+                  <span className="text-muted-foreground">Email:</span>
+                  <span className="col-span-2">{selectedLead.email || '—'}</span>
                 </div>
-                <div className="grid grid-cols-3 gap-1 text-sm">
-                  <span className="text-muted-foreground">Rating:</span>
-                  <span className="col-span-2">
-                    <StarRating rating={selectedReview.rating} />
-                  </span>
-                </div>
-                <div className="grid grid-cols-3 gap-1 text-sm">
-                  <span className="text-muted-foreground">Description:</span>
-                  <span className="col-span-2">{selectedReview.description}</span>
-                </div>
-                {selectedReview.comment && (
-                  <div className="grid grid-cols-3 gap-1 text-sm">
-                    <span className="text-muted-foreground">Comment:</span>
-                    <span className="col-span-2">{selectedReview.comment}</span>
-                  </div>
-                )}
+
                 <div className="grid grid-cols-3 gap-1 text-sm">
                   <span className="text-muted-foreground">Status:</span>
                   <span className="col-span-2">
-                    <Badge variant={selectedReview.isDeleted ? 'destructive' : 'default'}>
-                      {selectedReview.isDeleted ? 'Deleted' : 'Active'}
-                    </Badge>
+                    <StatusBadge status={selectedLead.status} />
                   </span>
                 </div>
+
+                <div className="grid grid-cols-3 gap-1 text-sm">
+                  <span className="text-muted-foreground">Description:</span>
+                  <span className="col-span-2 bg-muted/20 rounded p-2">
+                    {selectedLead.description || 'No description provided'}
+                  </span>
+                </div>
+
                 <div className="grid grid-cols-3 gap-1 text-sm">
                   <span className="text-muted-foreground">Created:</span>
-                  <span className="col-span-2">{formatDate(selectedReview.createdAt)}</span>
+                  <span className="col-span-2">{formatDate(selectedLead.createdAt)}</span>
                 </div>
+
+                <div className="grid grid-cols-3 gap-1 text-sm">
+                  <span className="text-muted-foreground">Updated:</span>
+                  <span className="col-span-2">{formatDate(selectedLead.updatedAt)}</span>
+                </div>
+
                 <div className="grid grid-cols-3 gap-1 text-sm">
                   <span className="text-muted-foreground">ID:</span>
-                  <span className="col-span-2 font-mono text-xs">{selectedReview._id}</span>
+                  <span className="col-span-2 font-mono text-xs">{selectedLead._id}</span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-1 text-sm">
+                  <span className="text-muted-foreground">Deleted:</span>
+                  <span className="col-span-2">
+                    <Badge variant={selectedLead.isDeleted ? 'destructive' : 'secondary'}>
+                      {selectedLead.isDeleted ? 'Yes' : 'No'}
+                    </Badge>
+                  </span>
                 </div>
               </div>
             </div>

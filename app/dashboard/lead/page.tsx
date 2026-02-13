@@ -1,7 +1,10 @@
 import React from 'react'
+import AllLead from './AllLead'
 
 export default function page() {
   return (
-    <div>page</div>
+    <div className='py-6'>
+      <AllLead />
+    </div>
   )
 }

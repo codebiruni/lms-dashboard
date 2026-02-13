@@ -236,7 +236,7 @@ export default function CreateCourseProgress() {
             </div>
 
             {!sectionId ? (
-              <div className="bg-muted/30 rounded-lg p-8 text-center">
+              <div className="bg-muted/30 rounded p-8 text-center">
                 <p className="text-sm text-muted-foreground">
                   Please select a section to view lessons
                 </p>
@@ -244,13 +244,13 @@ export default function CreateCourseProgress() {
             ) : lessonLoading ? (
               <Skeleton className="h-40 w-full" />
             ) : lessons.length === 0 ? (
-              <div className="bg-muted/30 rounded-lg p-8 text-center">
+              <div className="bg-muted/30 rounded p-8 text-center">
                 <p className="text-sm text-muted-foreground">
                   No lessons found in this section
                 </p>
               </div>
             ) : (
-              <div className="border rounded-lg overflow-hidden">
+              <div className="border rounded overflow-hidden">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -292,7 +292,7 @@ export default function CreateCourseProgress() {
 
           {/* -------- Summary Card -------- */}
           {selectedLessons.length > 0 && (
-            <div className="bg-muted/20 rounded-lg p-4 border">
+            <div className="bg-muted/20 rounded p-4 border">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium">Ready to submit</p>
