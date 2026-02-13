@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 
@@ -39,6 +39,8 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 export default function CreateCourseProgress() {
   const [courseId, setCourseId] = useState<string | null>(null)
@@ -69,6 +71,17 @@ export default function CreateCourseProgress() {
     limit: 100,
   })
 
+  /* -------- Reset selections when course changes -------- */
+  useEffect(() => {
+    setSectionId(null)
+    setSelectedLessons([])
+  }, [courseId])
+
+  /* -------- Reset selections when section changes -------- */
+  useEffect(() => {
+    setSelectedLessons([])
+  }, [sectionId])
+
   /* -------- Select All Lessons -------- */
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -87,7 +100,7 @@ export default function CreateCourseProgress() {
     }
   }
 
-  /* -------- Submit -------- */
+  /* -------- Submit - Send ALL lessons in ONE request -------- */
   const handleSubmit = async () => {
     if (!courseId) {
       toast.error('Please select course')
@@ -107,20 +120,25 @@ export default function CreateCourseProgress() {
     try {
       setSubmitting(true)
 
-      for (const lessonId of selectedLessons) {
-        const payload = {
-          student: studentId.trim(),
-          course: courseId,
-          completedLessons: [lessonId],
-        }
-
-        await POSTDATA('/v1/course-progress', payload)
+      // Send ALL selected lessons in ONE request
+      const payload = {
+        student: studentId.trim(),
+        course: courseId,
+        completedLessons: selectedLessons, // Send array of ALL lesson IDs
       }
 
-      toast.success('Course progress updated successfully 🎉')
+      const res = await POSTDATA('/v1/course-progress', payload)
 
+      if (!res?.success) {
+        throw new Error(res?.message || 'Failed to update progress')
+      }
+
+      toast.success(`Course progress updated successfully! ${selectedLessons.length} lessons marked as completed. 🎉`)
+
+      // Reset form
       setSelectedLessons([])
       setStudentId('')
+      
     } catch (error: any) {
       toast.error(error.message || 'Failed to update progress')
     } finally {
@@ -129,27 +147,28 @@ export default function CreateCourseProgress() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className="max-w-5xl mx-auto p-4">
       <Card>
         <CardHeader>
-          <CardTitle>Create Course Progress</CardTitle>
+          <CardTitle className="text-2xl font-bold">Create Course Progress</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Mark completed lessons for a student in a specific course
+          </p>
         </CardHeader>
 
         <CardContent className="space-y-6">
+          {/* -------- Course Selection Row -------- */}
           <div className="grid md:grid-cols-3 gap-4">
-            {/* -------- Course -------- */}
-            <div>
-              <p className="mb-2 text-sm font-medium">Select Course</p>
+            {/* Course Select */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Course *</Label>
 
               {courseLoading ? (
                 <Skeleton className="h-10 w-full" />
               ) : (
                 <Select
-                  onValueChange={(v) => {
-                    setCourseId(v)
-                    setSectionId(null)
-                    setSelectedLessons([])
-                  }}
+                  value={courseId || undefined}
+                  onValueChange={(v) => setCourseId(v)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Choose Course" />
@@ -157,10 +176,7 @@ export default function CreateCourseProgress() {
 
                   <SelectContent>
                     {courses.map((course: any) => (
-                      <SelectItem
-                        key={course._id}
-                        value={course._id}
-                      >
+                      <SelectItem key={course._id} value={course._id}>
                         {course.title}
                       </SelectItem>
                     ))}
@@ -169,19 +185,17 @@ export default function CreateCourseProgress() {
               )}
             </div>
 
-            {/* -------- Section -------- */}
-            <div>
-              <p className="mb-2 text-sm font-medium">Select Section</p>
+            {/* Section Select */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Section</Label>
 
               {sectionLoading ? (
                 <Skeleton className="h-10 w-full" />
               ) : (
                 <Select
+                  value={sectionId || undefined}
                   disabled={!courseId}
-                  onValueChange={(v) => {
-                    setSectionId(v)
-                    setSelectedLessons([])
-                  }}
+                  onValueChange={(v) => setSectionId(v)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Choose Section" />
@@ -189,10 +203,7 @@ export default function CreateCourseProgress() {
 
                   <SelectContent>
                     {courseSections.map((section: any) => (
-                      <SelectItem
-                        key={section._id}
-                        value={section._id}
-                      >
+                      <SelectItem key={section._id} value={section._id}>
                         {section.title}
                       </SelectItem>
                     ))}
@@ -201,88 +212,118 @@ export default function CreateCourseProgress() {
               )}
             </div>
 
-            {/* -------- Student Input -------- */}
-            <div>
-              <p className="mb-2 text-sm font-medium">Student ID</p>
-              <input
+            {/* Student ID Input */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Student ID *</Label>
+              <Input
                 type="text"
                 placeholder="Enter Student ID"
-                className="w-full border rounded px-3 py-2 text-sm"
                 value={studentId}
                 onChange={(e) => setStudentId(e.target.value)}
               />
             </div>
           </div>
 
-          {/* -------- Lessons -------- */}
-          <div>
-            <p className="mb-3 font-medium">Lessons</p>
+          {/* -------- Lessons Table -------- */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-base font-medium">Lessons</Label>
+              {sectionId && lessons.length > 0 && (
+                <Badge variant="outline">
+                  {selectedLessons.length} of {lessons.length} selected
+                </Badge>
+              )}
+            </div>
 
-            {lessonLoading ? (
+            {!sectionId ? (
+              <div className="bg-muted/30 rounded-lg p-8 text-center">
+                <p className="text-sm text-muted-foreground">
+                  Please select a section to view lessons
+                </p>
+              </div>
+            ) : lessonLoading ? (
               <Skeleton className="h-40 w-full" />
             ) : lessons.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                No lessons found
-              </p>
+              <div className="bg-muted/30 rounded-lg p-8 text-center">
+                <p className="text-sm text-muted-foreground">
+                  No lessons found in this section
+                </p>
+              </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>
-                      <Checkbox
-                        checked={
-                          selectedLessons.length === lessons.length
-                        }
-                        onCheckedChange={handleSelectAll}
-                      />
-                    </TableHead>
-
-                    <TableHead>Title</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Duration</TableHead>
-                  </TableRow>
-                </TableHeader>
-
-                <TableBody>
-                  {lessons.map((lesson: any) => (
-                    <TableRow key={lesson._id}>
-                      <TableCell>
+              <div className="border rounded-lg overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12">
                         <Checkbox
-                          checked={selectedLessons.includes(
-                            lesson._id
-                          )}
-                          onCheckedChange={(v) =>
-                            handleSelectLesson(
-                              lesson._id,
-                              !!v
-                            )
-                          }
+                          checked={selectedLessons.length === lessons.length}
+                          onCheckedChange={handleSelectAll}
                         />
-                      </TableCell>
-
-                      <TableCell>{lesson.title}</TableCell>
-
-                      <TableCell>
-                        <Badge>{lesson.lessonType}</Badge>
-                      </TableCell>
-
-                      <TableCell>{lesson.duration} min</TableCell>
+                      </TableHead>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Duration</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+
+                  <TableBody>
+                    {lessons.map((lesson: any) => (
+                      <TableRow key={lesson._id}>
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedLessons.includes(lesson._id)}
+                            onCheckedChange={(v) => handleSelectLesson(lesson._id, !!v)}
+                          />
+                        </TableCell>
+                        <TableCell className="font-medium">{lesson.title}</TableCell>
+                        <TableCell>
+                          <Badge variant="secondary" className="capitalize">
+                            {lesson.lessonType}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{lesson.duration || '-'} min</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             )}
           </div>
 
+          {/* -------- Summary Card -------- */}
+          {selectedLessons.length > 0 && (
+            <div className="bg-muted/20 rounded-lg p-4 border">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">Ready to submit</p>
+                  <p className="text-xs text-muted-foreground">
+                    You are marking {selectedLessons.length} lesson{selectedLessons.length > 1 ? 's' : ''} as completed
+                  </p>
+                </div>
+                <Badge variant="default" className="bg-green-600">
+                  {selectedLessons.length} lesson{selectedLessons.length > 1 ? 's' : ''}
+                </Badge>
+              </div>
+            </div>
+          )}
+
+          {/* -------- Submit Button -------- */}
           <Button
             className="w-full"
-            disabled={submitting}
+            size="lg"
+            disabled={
+              submitting || 
+              !courseId || 
+              !sectionId || 
+              !studentId.trim() || 
+              selectedLessons.length === 0
+            }
             onClick={handleSubmit}
           >
             {submitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving Progress...
+                Updating Progress...
               </>
             ) : (
               'Create Course Progress'

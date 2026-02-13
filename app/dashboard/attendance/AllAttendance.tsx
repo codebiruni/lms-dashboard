@@ -3,7 +3,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import useFetchEnrollment from '@/app/default/custom-component/useFetchEnrollment'
+import useFetchAttendance from '@/app/default/custom-component/useFetchAttendance'
 import PATCHDATA from '@/app/default/functions/Patch'
 import DELETEDATA from '@/app/default/functions/DeleteData'
 
@@ -43,29 +43,18 @@ import {
   Pencil,
   Eye,
   Calendar,
+  Clock,
   BookOpen,
   Users,
+  Video,
   CheckCircle,
   XCircle,
-  DollarSign,
-  TrendingUp,
+  AlertCircle,
 } from 'lucide-react'
-import Image from 'next/image'
-import Link from 'next/link'
-import EditEnrollment from './EditEnrollment'
+
+import EditAttendance from './EditAttendance'
 
 /* -------------------- Types -------------------- */
-
-interface Student {
-  _id: string
-  id: string
-  bio?: string
-  userId?: {
-    name: string
-    email: string
-  }
-  image?: string
-}
 
 interface Course {
   _id: string
@@ -73,18 +62,31 @@ interface Course {
   slug?: string
 }
 
-interface Enrollment {
+interface LiveClass {
   _id: string
-  student: Student
-  course: Course
-  enrollmentStatus: 'active' | 'completed' | 'cancelled'
-  paymentStatus: 'pending' | 'paid' | 'failed'
-  totalAmount: number
-  paidAmount: number
-  dueAmount: number
-  progress: number
-  enrollmentDate: string
-  completedAt?: string
+  title: string
+  startTime: string
+  endTime: string
+  meetingPlatform?: string
+}
+
+interface Student {
+  _id: string
+  id: string
+  userId?: {
+    name: string
+    email: string
+  }
+}
+
+interface Attendance {
+  _id: string
+  courseId: Course
+  liveClassId: LiveClass
+  studentId: Student
+  status: 'present' | 'absent' | 'late'
+  joinedAt?: string
+  leftAt?: string
   isDeleted: boolean
   createdAt: string
   updatedAt: string
@@ -100,17 +102,17 @@ interface Meta {
 
 /* -------------------- Component -------------------- */
 
-export default function AllEnrollment() {
+export default function AllAttendance() {
   /* ---------- Filters & Pagination ---------- */
   const [page, setPage] = useState(1)
   const [limit] = useState(10)
   const [search, setSearch] = useState('')
-  const [studentId, setStudentId] = useState<string | undefined>()
   const [courseId, setCourseId] = useState<string | undefined>()
+  const [liveClassId, setLiveClassId] = useState<string | undefined>()
+  const [studentId, setStudentId] = useState<string | undefined>()
   const [status, setStatus] = useState<string | undefined>()
-  const [paymentStatus, setPaymentStatus] = useState<string | undefined>()
   const [isDeleted, setIsDeleted] = useState<boolean | undefined>(false)
-  const [sortBy, setSortBy] = useState<'createdAt' | 'progress' | 'totalAmount'>('createdAt')
+  const [sortBy, setSortBy] = useState<'createdAt' | 'joinedAt'>('createdAt')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
 
   /* ---------- Delete / Restore Dialog ---------- */
@@ -118,51 +120,51 @@ export default function AllEnrollment() {
   const [detailsOpen, setDetailsOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [deleteType, setDeleteType] = useState<'soft' | 'hard' | 'restore'>('soft')
-  const [selectedEnrollment, setSelectedEnrollment] = useState<Enrollment | null>(null)
+  const [selectedAttendance, setSelectedAttendance] = useState<Attendance | null>(null)
 
-  /* ---------- Fetch Enrollments ---------- */
-  const { enrollments, meta, isLoading, refetch } = useFetchEnrollment({
+  /* ---------- Fetch Attendance ---------- */
+  const { attendances, meta, isLoading, refetch } = useFetchAttendance({
     page,
     limit,
-    search,
-    student: studentId,
-    course: courseId,
+    courseId,
+    liveClassId,
+    studentId,
     status,
-    paymentStatus,
     isDeleted: isDeleted === undefined ? false : isDeleted,
+    search,
     sortBy,
-    sortOrder: sortOrder === 'asc' ? 1 : -1,
+    sortOrder,
   })
 
   /* ---------- Handlers ---------- */
   const confirmAction = async () => {
-    if (!selectedEnrollment) return
+    if (!selectedAttendance) return
 
     try {
       if (deleteType === 'soft') {
-        await DELETEDATA(`/v1/enrollment/soft/${selectedEnrollment._id}`)
+        await DELETEDATA(`/v1/attendance/soft/${selectedAttendance._id}`)
       } else if (deleteType === 'hard') {
-        await DELETEDATA(`/v1/enrollment/hard/${selectedEnrollment._id}`)
+        await DELETEDATA(`/v1/attendance/hard/${selectedAttendance._id}`)
       } else if (deleteType === 'restore') {
-        await PATCHDATA(`/v1/enrollment/restore/${selectedEnrollment._id}`, { isDeleted: false })
+        await PATCHDATA(`/v1/attendance/restore/${selectedAttendance._id}`, { isDeleted: false })
       }
 
       setDeleteOpen(false)
-      setSelectedEnrollment(null)
+      setSelectedAttendance(null)
       refetch()
     } catch (err) {
       console.error(err)
     }
   }
 
-  const handleEditClick = (enrollment: Enrollment) => {
-    setSelectedEnrollment(enrollment)
+  const handleEditClick = (attendance: Attendance) => {
+    setSelectedAttendance(attendance)
     setEditOpen(true)
   }
 
   const handleEditSuccess = () => {
     setEditOpen(false)
-    setSelectedEnrollment(null)
+    setSelectedAttendance(null)
     refetch()
   }
 
@@ -181,68 +183,49 @@ export default function AllEnrollment() {
     })
   }
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'BDT',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount)
-  }
-
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'active':
-        return { label: 'Active', variant: 'default' as const, icon: CheckCircle, className: 'bg-green-600' }
-      case 'completed':
-        return { label: 'Completed', variant: 'default' as const, icon: CheckCircle, className: 'bg-blue-600' }
-      case 'cancelled':
-        return { label: 'Cancelled', variant: 'destructive' as const, icon: XCircle }
+      case 'present':
+        return { label: 'Present', variant: 'default' as const, icon: CheckCircle, className: 'bg-green-600' }
+      case 'absent':
+        return { label: 'Absent', variant: 'destructive' as const, icon: XCircle }
+      case 'late':
+        return { label: 'Late', variant: 'secondary' as const, icon: AlertCircle, className: 'bg-yellow-500' }
       default:
-        return { label: status, variant: 'secondary' as const, icon: XCircle }
+        return { label: status, variant: 'secondary' as const, icon: AlertCircle }
     }
   }
 
-  const getPaymentBadge = (status: string) => {
-    switch (status) {
-      case 'paid':
-        return { label: 'Paid', variant: 'default' as const, className: 'bg-green-600' }
-      case 'pending':
-        return { label: 'Pending', variant: 'secondary' as const }
-      case 'failed':
-        return { label: 'Failed', variant: 'destructive' as const }
-      default:
-        return { label: status, variant: 'secondary' as const }
-    }
+  const calculateDuration = (joinedAt?: string, leftAt?: string) => {
+    if (!joinedAt || !leftAt) return '-'
+    const join = new Date(joinedAt)
+    const left = new Date(leftAt)
+    const diffMs = left.getTime() - join.getTime()
+    const diffMins = Math.round(diffMs / 60000)
+    return `${diffMins} min`
   }
 
   /* ---------------- UI ---------------- */
   return (
     <div className="space-y-6 p-4">
-      {/* Edit Enrollment Dialog */}
-      {selectedEnrollment && (
-        <EditEnrollment
-          enrollment={selectedEnrollment}
+      {/* Edit Attendance Dialog */}
+      {selectedAttendance && (
+        <EditAttendance
+          attendance={selectedAttendance}
           open={editOpen}
           onOpenChange={setEditOpen}
           onSuccess={handleEditSuccess}
         />
       )}
 
-      <h2 className="text-2xl font-bold">Enrollments</h2>
+      <h2 className="text-2xl font-bold">All Attendance Records</h2>
 
       {/* ---------- Filters ---------- */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
         <Input
-          placeholder="Search by student/course"
+          placeholder="Search by course, class or student"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-        />
-
-        <Input
-          placeholder="Student ID"
-          value={studentId || ''}
-          onChange={(e) => setStudentId(e.target.value || undefined)}
         />
 
         <Input
@@ -251,36 +234,27 @@ export default function AllEnrollment() {
           onChange={(e) => setCourseId(e.target.value || undefined)}
         />
 
+        <Input
+          placeholder="Live Class ID"
+          value={liveClassId || ''}
+          onChange={(e) => setLiveClassId(e.target.value || undefined)}
+        />
+
         <Select onValueChange={(v) => setStatus(v || undefined)}>
           <SelectTrigger>
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
-            <SelectItem value="cancelled">Cancelled</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select onValueChange={(v) => setPaymentStatus(v || undefined)}>
-          <SelectTrigger>
-            <SelectValue placeholder="Payment" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            <SelectItem value="paid">Paid</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="failed">Failed</SelectItem>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="present">Present</SelectItem>
+            <SelectItem value="absent">Absent</SelectItem>
+            <SelectItem value="late">Late</SelectItem>
           </SelectContent>
         </Select>
 
         <Select 
-          value={isDeleted === undefined ? 'all' : isDeleted ? 'true' : 'false'}
-          onValueChange={(v) => {
-            if (v === 'all') setIsDeleted(undefined)
-            else setIsDeleted(v === 'true')
-          }}
+          value={isDeleted === undefined ? '' : isDeleted ? 'true' : 'false'}
+          onValueChange={(v) => setIsDeleted(v === 'true' ? true : v === 'false' ? false : undefined)}
         >
           <SelectTrigger>
             <SelectValue placeholder="Deleted" />
@@ -297,9 +271,8 @@ export default function AllEnrollment() {
             <SelectValue placeholder="Sort By" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="createdAt">Date</SelectItem>
-            <SelectItem value="progress">Progress</SelectItem>
-            <SelectItem value="totalAmount">Amount</SelectItem>
+            <SelectItem value="createdAt">Created Date</SelectItem>
+            <SelectItem value="joinedAt">Join Time</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -313,11 +286,11 @@ export default function AllEnrollment() {
               <TableHead>Student</TableHead>
               <TableHead>Student ID</TableHead>
               <TableHead>Course</TableHead>
-              <TableHead>Enrollment Status</TableHead>
-              <TableHead>Payment Status</TableHead>
-              <TableHead>Amounts</TableHead>
-              <TableHead>Progress</TableHead>
+              <TableHead>Live Class</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Join Time</TableHead>
+              <TableHead>Left Time</TableHead>
+              <TableHead>Duration</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -327,62 +300,53 @@ export default function AllEnrollment() {
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i}>
                   <TableCell><Skeleton className="h-5 w-6 mx-auto" /></TableCell>
-                  <TableCell><Skeleton className="h-10 w-32" /></TableCell>
+                  <TableCell><Skeleton className="h-5 w-32" /></TableCell>
                   <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                   <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                  <TableCell><Skeleton className="h-5 w-32" /></TableCell>
                   <TableCell><Skeleton className="h-5 w-20" /></TableCell>
-                  <TableCell><Skeleton className="h-5 w-20" /></TableCell>
-                  <TableCell><Skeleton className="h-5 w-40" /></TableCell>
+                  <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                  <TableCell><Skeleton className="h-5 w-32" /></TableCell>
                   <TableCell><Skeleton className="h-5 w-16" /></TableCell>
-                  <TableCell><Skeleton className="h-5 w-20" /></TableCell>
                   <TableCell><Skeleton className="h-5 w-32 ml-auto" /></TableCell>
                 </TableRow>
               ))}
 
-            {!isLoading && enrollments.length === 0 && (
+            {!isLoading && attendances.length === 0 && (
               <TableRow>
                 <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
-                  No enrollments found
+                  No attendance records found
                 </TableCell>
               </TableRow>
             )}
 
             {!isLoading &&
-              enrollments.map((enrollment: any, index: number) => {
-                const statusBadge = getStatusBadge(enrollment.enrollmentStatus)
-                const paymentBadge = getPaymentBadge(enrollment.paymentStatus)
+              attendances.map((attendance: Attendance, index: number) => {
+                const statusBadge = getStatusBadge(attendance.status)
+                const StatusIcon = statusBadge.icon
+                const duration = calculateDuration(attendance.joinedAt, attendance.leftAt)
+                
                 return (
                   <TableRow
-                    key={enrollment._id}
-                    className={enrollment.isDeleted ? 'bg-red-50/50' : ''}
+                    key={attendance._id}
+                    className={attendance.isDeleted ? 'bg-red-50/50' : ''}
                   >
                     <TableCell className="text-center font-medium">
                       {getSerialNumber(index)}
                     </TableCell>
 
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        {enrollment.student?.image && (
-                          <div className="relative w-10 h-10 rounded-full overflow-hidden border shrink-0">
-                            <Image
-                              src={enrollment.student.image}
-                              alt={enrollment.student.id || 'Student'}
-                              fill
-                              className="object-cover"
-                              sizes="40px"
-                            />
-                          </div>
-                        )}
-                        <div>
-                          <div className="font-medium">{enrollment.student?.userId?.name || 'Unknown'}</div>
-                          <div className="text-xs text-muted-foreground">{enrollment.student?.bio || ''}</div>
-                        </div>
+                      <div className="font-medium">
+                        {attendance.studentId?.userId?.name || 'Unknown'}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {attendance.studentId?.userId?.email || ''}
                       </div>
                     </TableCell>
 
                     <TableCell>
                       <Badge variant="outline" className="font-mono">
-                        {enrollment.student?.id || enrollment.student?._id?.slice(-6)}
+                        {attendance.studentId?.id || attendance.studentId?._id?.slice(-6)}
                       </Badge>
                     </TableCell>
 
@@ -390,8 +354,20 @@ export default function AllEnrollment() {
                       <div className="flex items-center gap-1">
                         <BookOpen size={14} className="text-muted-foreground" />
                         <span className="truncate max-w-30">
-                          {enrollment.course?.title || 'N/A'}
+                          {attendance.courseId?.title || 'N/A'}
                         </span>
+                      </div>
+                    </TableCell>
+
+                    <TableCell>
+                      <div className="max-w-37.5">
+                        <div className="flex items-center gap-1">
+                          <Video size={14} className="text-muted-foreground" />
+                          <span className="truncate">{attendance.liveClassId?.title || 'N/A'}</span>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {formatDate(attendance.liveClassId?.startTime)}
+                        </div>
                       </div>
                     </TableCell>
 
@@ -400,41 +376,32 @@ export default function AllEnrollment() {
                         variant={statusBadge.variant}
                         className={statusBadge.className}
                       >
+                        <StatusIcon size={12} className="mr-1" />
                         {statusBadge.label}
                       </Badge>
                     </TableCell>
 
                     <TableCell>
-                      <Badge 
-                        variant={paymentBadge.variant}
-                        className={paymentBadge.className}
-                      >
-                        {paymentBadge.label}
-                      </Badge>
-                    </TableCell>
-
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-1 text-sm">
-                          <DollarSign size={14} className="text-muted-foreground" />
-                          <span className="font-medium">{formatCurrency(enrollment.totalAmount)}</span>
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          Paid: {formatCurrency(enrollment.paidAmount)} | Due: {formatCurrency(enrollment.dueAmount)}
-                        </div>
+                      <div className="flex items-center gap-1">
+                        <Clock size={14} className="text-muted-foreground" />
+                        <span className="text-sm">
+                          {formatDate(attendance.joinedAt)}
+                        </span>
                       </div>
                     </TableCell>
 
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        <TrendingUp size={14} className="text-muted-foreground" />
-                        <span className="font-medium">{enrollment.progress}%</span>
+                        <Clock size={14} className="text-muted-foreground" />
+                        <span className="text-sm">
+                          {formatDate(attendance.leftAt)}
+                        </span>
                       </div>
                     </TableCell>
 
                     <TableCell>
-                      <Badge variant={enrollment.isDeleted ? 'destructive' : 'secondary'}>
-                        {enrollment.isDeleted ? 'Deleted' : 'Active'}
+                      <Badge variant="outline">
+                        {duration}
                       </Badge>
                     </TableCell>
 
@@ -444,19 +411,19 @@ export default function AllEnrollment() {
                           size="icon"
                           variant="outline"
                           onClick={() => {
-                            setSelectedEnrollment(enrollment)
+                            setSelectedAttendance(attendance)
                             setDetailsOpen(true)
                           }}
                         >
                           <Eye size={16} />
                         </Button>
 
-                        {!enrollment.isDeleted && (
+                        {!attendance.isDeleted && (
                           <>
                             <Button
                               size="icon"
                               variant="outline"
-                              onClick={() => handleEditClick(enrollment)}
+                              onClick={() => handleEditClick(attendance)}
                             >
                               <Pencil size={16} />
                             </Button>
@@ -465,7 +432,7 @@ export default function AllEnrollment() {
                               size="icon"
                               variant="destructive"
                               onClick={() => {
-                                setSelectedEnrollment(enrollment)
+                                setSelectedAttendance(attendance)
                                 setDeleteType('soft')
                                 setDeleteOpen(true)
                               }}
@@ -475,13 +442,13 @@ export default function AllEnrollment() {
                           </>
                         )}
 
-                        {enrollment.isDeleted && (
+                        {attendance.isDeleted && (
                           <>
                             <Button
                               size="icon"
                               variant="outline"
                               onClick={() => {
-                                setSelectedEnrollment(enrollment)
+                                setSelectedAttendance(attendance)
                                 setDeleteType('restore')
                                 setDeleteOpen(true)
                               }}
@@ -493,7 +460,7 @@ export default function AllEnrollment() {
                               size="icon"
                               variant="destructive"
                               onClick={() => {
-                                setSelectedEnrollment(enrollment)
+                                setSelectedAttendance(attendance)
                                 setDeleteType('hard')
                                 setDeleteOpen(true)
                               }}
@@ -516,7 +483,7 @@ export default function AllEnrollment() {
         <div className="flex justify-between items-center">
           <div className="text-sm text-muted-foreground">
             Showing {(page - 1) * meta.limit + 1} to{' '}
-            {Math.min(page * meta.limit, meta.total)} of {meta.total} enrollments
+            {Math.min(page * meta.limit, meta.total)} of {meta.total} records
           </div>
 
           <div className="flex gap-2">
@@ -547,51 +514,43 @@ export default function AllEnrollment() {
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold flex items-center gap-2">
               <Users className="h-6 w-6" />
-              Enrollment Details
+              Attendance Details
             </DialogTitle>
           </DialogHeader>
 
-          {selectedEnrollment && (
+          {selectedAttendance && (
             <div className="space-y-6">
               {/* Status Cards */}
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="bg-muted/30 rounded-lg p-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <CheckCircle size={14} />
                     <span>Status</span>
                   </div>
                   <Badge 
-                    variant={getStatusBadge(selectedEnrollment.enrollmentStatus).variant}
-                    className={getStatusBadge(selectedEnrollment.enrollmentStatus).className}
+                    variant={getStatusBadge(selectedAttendance.status).variant}
+                    className={getStatusBadge(selectedAttendance.status).className}
                   >
-                    {getStatusBadge(selectedEnrollment.enrollmentStatus).label}
+                    {getStatusBadge(selectedAttendance.status).label}
                   </Badge>
                 </div>
                 <div className="bg-muted/30 rounded-lg p-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                    <DollarSign size={14} />
-                    <span>Payment</span>
+                    <Clock size={14} />
+                    <span>Duration</span>
                   </div>
-                  <Badge 
-                    variant={getPaymentBadge(selectedEnrollment.paymentStatus).variant}
-                    className={getPaymentBadge(selectedEnrollment.paymentStatus).className}
-                  >
-                    {getPaymentBadge(selectedEnrollment.paymentStatus).label}
-                  </Badge>
-                </div>
-                <div className="bg-muted/30 rounded-lg p-3">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                    <TrendingUp size={14} />
-                    <span>Progress</span>
-                  </div>
-                  <span className="text-xl font-bold">{selectedEnrollment.progress}%</span>
+                  <span className="text-xl font-bold">
+                    {calculateDuration(selectedAttendance.joinedAt, selectedAttendance.leftAt)}
+                  </span>
                 </div>
                 <div className="bg-muted/30 rounded-lg p-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <Calendar size={14} />
-                    <span>Enrolled</span>
+                    <span>Recorded</span>
                   </div>
-                  <span className="text-sm">{formatDate(selectedEnrollment.enrollmentDate)}</span>
+                  <span className="font-medium">
+                    {formatDate(selectedAttendance.createdAt)}
+                  </span>
                 </div>
               </div>
 
@@ -603,94 +562,70 @@ export default function AllEnrollment() {
                     Student Information
                   </h3>
                   <div className="bg-muted/20 rounded-lg p-4">
-                    <div className="flex gap-4">
-                      {selectedEnrollment.student?.image && (
-                        <div className="relative w-16 h-16 rounded-full overflow-hidden border">
-                          <Image
-                            src={selectedEnrollment.student.image}
-                            alt={selectedEnrollment.student.id || 'Student'}
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
-                      )}
-                      <div className="grid grid-cols-2 gap-4 flex-1">
-                        <div>
-                          <p className="text-xs text-muted-foreground">Name</p>
-                          <p className="font-medium">{selectedEnrollment.student?.userId?.name || 'Unknown'}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-muted-foreground">Student ID</p>
-                          <p className="font-mono">{selectedEnrollment.student?.id || selectedEnrollment.student?._id}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-muted-foreground">Bio</p>
-                          <p className="text-sm">{selectedEnrollment.student?.bio || 'N/A'}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Course Info */}
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                    Course Information
-                  </h3>
-                  <div className="bg-muted/20 rounded-lg p-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="text-xs text-muted-foreground">Course Title</p>
-                        <p className="font-medium">{selectedEnrollment.course?.title}</p>
+                        <p className="text-xs text-muted-foreground">Name</p>
+                        <p className="font-medium">{selectedAttendance.studentId?.userId?.name || 'Unknown'}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-muted-foreground">Course ID</p>
-                        <p className="font-mono">{selectedEnrollment.course?._id}</p>
+                        <p className="text-xs text-muted-foreground">Email</p>
+                        <p className="font-medium">{selectedAttendance.studentId?.userId?.email || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">Student ID</p>
+                        <p className="font-mono">{selectedAttendance.studentId?.id || selectedAttendance.studentId?._id}</p>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Payment Details */}
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                    Payment Details
-                  </h3>
-                  <div className="bg-muted/20 rounded-lg p-4">
-                    <div className="grid grid-cols-3 gap-4">
-                      <div>
-                        <p className="text-xs text-muted-foreground">Total Amount</p>
-                        <p className="text-xl font-bold text-green-600">{formatCurrency(selectedEnrollment.totalAmount)}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">Paid Amount</p>
-                        <p className="text-xl font-bold text-blue-600">{formatCurrency(selectedEnrollment.paidAmount)}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">Due Amount</p>
-                        <p className="text-xl font-bold text-red-600">{formatCurrency(selectedEnrollment.dueAmount)}</p>
-                      </div>
+                {/* Course & Live Class */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                      Course
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      <BookOpen size={16} className="text-muted-foreground" />
+                      <p className="font-medium">{selectedAttendance.courseId?.title}</p>
                     </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      ID: {selectedAttendance.courseId?._id}
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                      Live Class
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      <Video size={16} className="text-muted-foreground" />
+                      <p className="font-medium">{selectedAttendance.liveClassId?.title}</p>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {formatDate(selectedAttendance.liveClassId?.startTime)}
+                    </p>
                   </div>
                 </div>
 
-                {/* Progress */}
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                    Course Progress
-                  </h3>
-                  <div className="bg-muted/20 rounded-lg p-4">
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>Completion</span>
-                        <span className="font-bold">{selectedEnrollment.progress}%</span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-2.5">
-                        <div 
-                          className="bg-green-600 h-2.5 rounded-full" 
-                          style={{ width: `${selectedEnrollment.progress}%` }}
-                        />
-                      </div>
+                {/* Attendance Times */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                      Joined At
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      <Clock size={16} className="text-muted-foreground" />
+                      <span>{formatDate(selectedAttendance.joinedAt)}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                      Left At
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      <Clock size={16} className="text-muted-foreground" />
+                      <span>{formatDate(selectedAttendance.leftAt)}</span>
                     </div>
                   </div>
                 </div>
@@ -702,23 +637,17 @@ export default function AllEnrollment() {
                   </h3>
                   <div className="grid grid-cols-2 gap-3 text-xs">
                     <div>
-                      <p className="text-muted-foreground mb-1">Enrollment ID</p>
-                      <p className="font-mono">{selectedEnrollment._id}</p>
+                      <p className="text-muted-foreground mb-1">Attendance ID</p>
+                      <p className="font-mono">{selectedAttendance._id}</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground mb-1">Created At</p>
-                      <p>{formatDate(selectedEnrollment.createdAt)}</p>
+                      <p>{formatDate(selectedAttendance.createdAt)}</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground mb-1">Last Updated</p>
-                      <p>{formatDate(selectedEnrollment.updatedAt)}</p>
+                      <p>{formatDate(selectedAttendance.updatedAt)}</p>
                     </div>
-                    {selectedEnrollment.completedAt && (
-                      <div>
-                        <p className="text-muted-foreground mb-1">Completed At</p>
-                        <p>{formatDate(selectedEnrollment.completedAt)}</p>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
@@ -742,9 +671,9 @@ export default function AllEnrollment() {
 
           <div className="space-y-4 py-3">
             <p className="text-sm text-muted-foreground">
-              {deleteType === 'soft' && 'This will move the enrollment record to trash. You can restore it later from the deleted items.'}
-              {deleteType === 'hard' && 'This will permanently delete this enrollment record. This action cannot be undone!'}
-              {deleteType === 'restore' && 'This will restore the enrollment record from trash. It will be visible again.'}
+              {deleteType === 'soft' && 'This will move the attendance record to trash. You can restore it later from the deleted items.'}
+              {deleteType === 'hard' && 'This will permanently delete this attendance record. This action cannot be undone!'}
+              {deleteType === 'restore' && 'This will restore the attendance record from trash. It will be visible again.'}
             </p>
 
             {deleteType !== 'restore' && (
@@ -775,7 +704,7 @@ export default function AllEnrollment() {
             >
               {deleteType === 'soft' && 'Move to Trash'}
               {deleteType === 'hard' && 'Permanently Delete'}
-              {deleteType === 'restore' && 'Restore Enrollment'}
+              {deleteType === 'restore' && 'Restore Record'}
             </Button>
           </DialogFooter>
         </DialogContent>

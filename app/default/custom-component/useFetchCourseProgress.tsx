@@ -6,47 +6,52 @@ import GETDATA from "../functions/GetData"
 
 /* -------------------- Types -------------------- */
 
-type UseFetchEnrollmentParams = {
+type UseFetchCourseProgressParams = {
   page?: number
   limit?: number
-  search?: string
   student?: string
   course?: string
+  enrollment?: string
+  isCompleted?: boolean
   isDeleted?: boolean
-  status?: string
-  paymentStatus?: string
-  sortBy?: 'createdAt' | 'progress' | 'totalAmount' | 'enrollmentDate'
-  sortOrder?: 1 | -1
+  search?: string
+  sortBy?: 'progressPercentage' | 'createdAt' | 'updatedAt' | 'isCompleted'
+  sortOrder?: 'asc' | 'desc'
   startDate?: string
   endDate?: string
   minProgress?: number
   maxProgress?: number
 }
 
-export type Enrollment = {
+export type CourseProgress = {
   _id: string
   student: {
     _id: string
     id: string
-    bio?: string
     userId?: {
       name: string
       email: string
     }
-    image?: string
   }
   course: {
     _id: string
     title: string
     slug?: string
   }
-  enrollmentStatus: 'active' | 'completed' | 'cancelled'
-  paymentStatus: 'pending' | 'paid' | 'failed'
-  totalAmount: number
-  paidAmount: number
-  dueAmount: number
-  progress: number
-  enrollmentDate: string
+  enrollment?: {
+    _id: string
+    studentId: string
+    courseId: string
+  }
+  completedLessons: Array<{
+    _id: string
+    title: string
+    lessonType: string
+    duration?: number
+  }>
+  totalLessons: number
+  progressPercentage: number
+  isCompleted: boolean
   completedAt?: string
   isDeleted: boolean
   createdAt: string
@@ -54,7 +59,7 @@ export type Enrollment = {
   __v?: number
 }
 
-type FetchEnrollmentResponse = {
+type FetchCourseProgressResponse = {
   success: boolean
   message: string
   data: {
@@ -64,43 +69,43 @@ type FetchEnrollmentResponse = {
       total: number
       totalPages: number
     }
-    data: Enrollment[]
+    data: CourseProgress[]
   }
 }
 
 /* -------------------- Hook -------------------- */
 
-export default function useFetchEnrollment({
+export default function useFetchCourseProgress({
   page = 1,
   limit = 10,
-  search = "",
   student,
   course,
-  status,
-  paymentStatus,
+  enrollment,
+  isCompleted,
   isDeleted = false,
-  sortBy = "createdAt",
-  sortOrder = -1,
+  search,
+  sortBy = 'createdAt',
+  sortOrder = 'desc',
   startDate,
   endDate,
   minProgress,
   maxProgress,
-}: UseFetchEnrollmentParams) {
+}: UseFetchCourseProgressParams) {
 
   // Build query string dynamically
   const params: Record<string, string> = {
     page: String(page),
     limit: String(limit),
     sortBy,
-    sortOrder: String(sortOrder),
+    sortOrder,
   }
 
-  if (search) params.search = search
   if (student) params.student = student
   if (course) params.course = course
-  if (status) params.status = status
-  if (paymentStatus) params.paymentStatus = paymentStatus
+  if (enrollment) params.enrollment = enrollment
+  if (isCompleted !== undefined) params.isCompleted = String(isCompleted)
   if (isDeleted !== undefined) params.isDeleted = String(isDeleted)
+  if (search) params.search = search
   if (startDate) params.startDate = startDate
   if (endDate) params.endDate = endDate
   if (minProgress !== undefined) params.minProgress = String(minProgress)
@@ -117,17 +122,17 @@ export default function useFetchEnrollment({
     isError,
     isSuccess,
     isPlaceholderData
-  } = useQuery<FetchEnrollmentResponse>({
+  } = useQuery<FetchCourseProgressResponse>({
     queryKey: [
-      "enrollments",
+      "course-progress",
       page,
       limit,
-      search,
       student,
       course,
-      status,
-      paymentStatus,
+      enrollment,
+      isCompleted,
       isDeleted,
+      search,
       sortBy,
       sortOrder,
       startDate,
@@ -137,17 +142,17 @@ export default function useFetchEnrollment({
     ],
     queryFn: async () => {
       try {
-        const res = await GETDATA<FetchEnrollmentResponse>(
-          `/v1/enrollment?${queryString}`
+        const res = await GETDATA<FetchCourseProgressResponse>(
+          `/v1/course-progress?${queryString}`
         )
 
         if (!res?.success) {
-          throw new Error(res?.message || "Failed to fetch enrollments")
+          throw new Error(res?.message || "Failed to fetch course progress")
         }
 
         return res
       } catch (error: any) {
-        throw new Error(error?.message || "Network error while fetching enrollments")
+        throw new Error(error?.message || "Network error while fetching course progress")
       }
     },
     placeholderData: keepPreviousData,
@@ -158,7 +163,7 @@ export default function useFetchEnrollment({
   })
 
   // Process and return data
-  const enrollments = data?.data?.data ?? []
+  const progress = data?.data?.data ?? []
   const meta = data?.data?.meta ?? {
     page,
     limit,
@@ -167,14 +172,14 @@ export default function useFetchEnrollment({
   }
 
   // Calculate stats
-  const totalRevenue = enrollments.reduce((acc: number, e: Enrollment) => acc + (e.paidAmount || 0), 0)
-  const totalDue = enrollments.reduce((acc: number, e: Enrollment) => acc + (e.dueAmount || 0), 0)
-  const activeCount = enrollments.filter((e: Enrollment) => e.enrollmentStatus === 'active').length
-  const completedCount = enrollments.filter((e: Enrollment) => e.enrollmentStatus === 'completed').length
-  const cancelledCount = enrollments.filter((e: Enrollment) => e.enrollmentStatus === 'cancelled').length
+  const completedCount = progress.filter((p: CourseProgress) => p.isCompleted).length
+  const inProgressCount = progress.filter((p: CourseProgress) => !p.isCompleted && !p.isDeleted).length
+  const averageProgress = progress.length > 0
+    ? Math.round(progress.reduce((acc: number, p: CourseProgress) => acc + p.progressPercentage, 0) / progress.length)
+    : 0
 
   return {
-    enrollments,
+    progress,
     meta,
     isLoading,
     isFetching,
@@ -188,12 +193,11 @@ export default function useFetchEnrollment({
     totalPages: meta.totalPages,
     pageSize: meta.limit,
     stats: {
-      totalRevenue,
-      totalDue,
-      activeCount,
       completedCount,
-      cancelledCount,
-      deletedCount: enrollments.filter((e: Enrollment) => e.isDeleted).length,
+      inProgressCount,
+      averageProgress,
+      totalLessonsCompleted: progress.reduce((acc: number, p: CourseProgress) => acc + (p.completedLessons?.length || 0), 0),
+      deletedCount: progress.filter((p: CourseProgress) => p.isDeleted).length,
     },
   }
 }
