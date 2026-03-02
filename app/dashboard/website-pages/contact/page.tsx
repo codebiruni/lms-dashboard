@@ -1,10 +1,10 @@
 import React from 'react'
-import DashboardInventory from './home/DashboardInventory'
+import ManageContactPage from './ManageContactPage'
 
 export default function page() {
   return (
     <div className='py-6'>
-      <DashboardInventory />
+      <ManageContactPage />
     </div>
   )
 }

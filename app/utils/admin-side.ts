@@ -10,6 +10,7 @@ import {
   HelpCircle,
   Users,
   Settings2,
+  Globe,
 } from "lucide-react";
 
 export const adminNavItems = [
@@ -113,6 +114,7 @@ export const adminNavItems = [
     items: [
       { title: "Categories", url: "/dashboard/category" },
       { title: "Sub Categories", url: "/dashboard/sub-category" },
+      { title: "Certificates Templates", url: "/dashboard/certificate-template" },
       { title: "Certificates", url: "/dashboard/certificate" },
     ],
   },
@@ -127,6 +129,7 @@ export const adminNavItems = [
     items: [
       { title: "Create Category", url: "/dashboard/category/create" },
       { title: "Create Sub Category", url: "/dashboard/sub-category/create" },
+      { title: "Create Certificate Template", url: "/dashboard/certificate-template/create" },
       { title: "Create Certificate", url: "/dashboard/certificate/create" },
     ],
   },
@@ -190,6 +193,22 @@ export const adminNavItems = [
       { title: "Create User", url: "/dashboard/user/create" },
     ],
   },
+  /* =====================================================
+     Website Management
+  ===================================================== */
+  {
+    title: "Website Management",
+    url: "#",
+    icon: Globe,
+    items: [
+      { title: "Manage Home Page", url: "/dashboard/website-pages/home" },
+      { title: "Manage Features Page", url: "/dashboard/website-pages/features" },
+      { title: "Manage Scholars Page", url: "/dashboard/website-pages/scholars" },
+      { title: "Manage Support Hub Page", url: "/dashboard/website-pages/support-hub" },
+      { title: "Manage Contact Page", url: "/dashboard/website-pages/contact" },
+      { title: "Manage Footer Page", url: "/dashboard/website-pages/footer" },
+    ],
+  },
 
   /* =====================================================
      SYSTEM
@@ -198,6 +217,11 @@ export const adminNavItems = [
     title: "System",
     url: "#",
     icon: Settings2,
-    items: [{ title: "Settings", url: "/dashboard/settings" }],
+    items: [
+      { title: "Email", url: "/dashboard/system/email" },
+      { title: "SMS", url: "/dashboard/system/sms" },
+      { title: "SSL Payment ", url: "/dashboard/system/ssl-payment" },
+      { title: "Web Core", url: "/dashboard/system/web-core" },
+    ],
   },
 ];

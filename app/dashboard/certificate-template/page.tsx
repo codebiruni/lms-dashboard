@@ -1,10 +1,10 @@
 import React from 'react'
-import DashboardInventory from './home/DashboardInventory'
+import AllCertificateTemplate from './AllCertificateTemplate'
 
 export default function page() {
   return (
     <div className='py-6'>
-      <DashboardInventory />
+      <AllCertificateTemplate />
     </div>
   )
 }

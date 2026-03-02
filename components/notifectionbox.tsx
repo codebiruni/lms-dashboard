@@ -109,3 +109,163 @@ export default function Notifectionbox() {
     </Popover>
   )
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// 'use client'
+
+// import * as React from 'react'
+// import { Bell, XCircle } from 'lucide-react'
+// import { io } from 'socket.io-client'
+// import {
+//   Popover,
+//   PopoverContent,
+//   PopoverTrigger,
+// } from '@/components/ui/popover'
+// import { Button } from '@/components/ui/button'
+// import { ScrollArea } from '@/components/ui/scroll-area'
+// import { Separator } from '@/components/ui/separator'
+
+// type Notification = {
+//   _id: string
+//   title: string
+//   text: string
+//   createdAt: string
+//   isRead: boolean
+//   imagePath: string
+// }
+
+// export default function Notifectionbox({ userId }: { userId: string }) {
+//   const [notifications, setNotifications] = React.useState<Notification[]>([])
+//   const [cursor, setCursor] = React.useState<string | null>(null)
+
+//   const socketRef = React.useRef<any>(null)
+
+//   React.useEffect(() => {
+//     fetchNotifications()
+
+//     socketRef.current = io(process.env.NEXT_PUBLIC_SOCKET_URL!)
+//     socketRef.current.emit('join-user', userId)
+
+//     socketRef.current.on('new-notification', (data: Notification) => {
+//       setNotifications(prev => [data, ...prev])
+//     })
+
+//     return () => {
+//       socketRef.current.disconnect()
+//     }
+//   }, [])
+
+//   const fetchNotifications = async () => {
+//     const res = await fetch(
+//       `${process.env.NEXT_PUBLIC_API}/notifications/user/${userId}?limit=10`
+//     )
+//     const data = await res.json()
+
+//     setNotifications(data.data)
+//     if (data.data.length > 0) {
+//       setCursor(data.data[data.data.length - 1].createdAt)
+//     }
+//   }
+
+//   const unreadCount = notifications.filter(n => !n.isRead).length
+
+//   const markAllRead = async () => {
+//     await fetch(
+//       `${process.env.NEXT_PUBLIC_API}/notifications/read/${userId}`,
+//       { method: 'PATCH' }
+//     )
+
+//     setNotifications(prev =>
+//       prev.map(n => ({ ...n, isRead: true }))
+//     )
+//   }
+
+//   const removeNotification = (id: string) => {
+//     setNotifications(prev => prev.filter(n => n._id !== id))
+//   }
+
+//   return (
+//     <Popover>
+//       <PopoverTrigger asChild>
+//         <Button variant="ghost" className="relative p-2">
+//           <Bell className="h-5 w-5" />
+//           {unreadCount > 0 && (
+//             <span className="absolute top-1 right-1 h-2 w-2 rounded bg-red-500 animate-pulse" />
+//           )}
+//         </Button>
+//       </PopoverTrigger>
+
+//       <PopoverContent align="end" className="w-80 p-0">
+//         <div className="flex items-center justify-between px-4 py-3 border-b">
+//           <span className="text-sm font-semibold">Notifications</span>
+//           <Button size="sm" variant="ghost" onClick={markAllRead}>
+//             Mark all read
+//           </Button>
+//         </div>
+
+//         <ScrollArea className="h-72">
+//           {notifications.length === 0 && (
+//             <div className="p-4 text-center text-sm text-muted-foreground">
+//               No notifications
+//             </div>
+//           )}
+
+//           {notifications.map(n => (
+//             <div
+//               key={n._id}
+//               className={`flex gap-3 px-4 py-3 border-b hover:bg-muted/10 ${
+//                 !n.isRead ? 'bg-muted/5' : ''
+//               }`}
+//             >
+//               <img
+//                 src={n.imagePath}
+//                 alt="notification"
+//                 className="h-8 w-8 rounded"
+//               />
+
+//               <div className="flex flex-col flex-1">
+//                 <span className="text-sm font-medium">{n.title}</span>
+//                 <span className="text-xs text-muted-foreground">
+//                   {n.text}
+//                 </span>
+//               </div>
+
+//               <button onClick={() => removeNotification(n._id)}>
+//                 <XCircle className="h-4 w-4 text-muted-foreground hover:text-red-500" />
+//               </button>
+//             </div>
+//           ))}
+//         </ScrollArea>
+
+//         <Separator />
+
+//         <div className="px-4 py-2 text-center text-xs text-muted-foreground">
+//           LMS Platform · Secure notifications
+//         </div>
+//       </PopoverContent>
+//     </Popover>
+//   )
+// }
