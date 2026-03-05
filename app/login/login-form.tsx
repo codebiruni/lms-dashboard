@@ -93,6 +93,8 @@ export default function LoginForm() {
         reset();
         if (user.role === 'admin') {
          router.push("/dashboard"); 
+        }else{
+          router.push('/instructor')
         }
       }
     } catch (err: any) {

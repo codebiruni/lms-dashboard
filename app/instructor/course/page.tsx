@@ -1,10 +1,10 @@
 import React from 'react'
-import ManageScholarsPage from './ManageScholarsPage'
+import AllCourse from './AllCourse'
 
 export default function page() {
   return (
     <div className='py-6'>
-      <ManageScholarsPage />
+      <AllCourse />
     </div>
   )
-} 
+}

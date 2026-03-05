@@ -25,6 +25,8 @@ export async function proxy(request: NextRequest) {
   }else if ((userData.role === "instructor") &&
     pathname.startsWith("/instructor")) {
     
+  }{
+    return NextResponse.next();
   }
 
   // ❌ default → send to home
