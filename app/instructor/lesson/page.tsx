@@ -1,7 +1,10 @@
+import AllLesson from '@/app/dashboard/lesson/AllLesson'
 import React from 'react'
 
 export default function page() {
   return (
-    <div>page</div>
+    <div className='py-6'>
+      <AllLesson />
+    </div>
   )
 }
