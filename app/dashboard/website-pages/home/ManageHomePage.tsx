@@ -95,64 +95,7 @@ interface CategorySection {
   }>;
 }
 
-interface WelcomeSection {
-  title: {
-    highlightText: string;
-    blackText: string;
-  };
-  description: string;
-  video: string;
-}
 
-interface FeatureSection {
-  title: {
-    highlightText: string;
-    blackText: string;
-  };
-  description: string;
-  features: Array<{
-    title: string;
-    description: string;
-  }>;
-}
-
-interface WhyChooseUsSection {
-  title: {
-    highlightText: string;
-    blackText: string;
-  };
-  description: string;
-  cards: Array<{
-    title: string;
-    description: string;
-  }>;
-}
-
-interface InstructorSection {
-  title: {
-    highlightText: string;
-    blackText: string;
-  };
-  description: string;
-  list: Array<{
-    firstList: string;
-    secondList: string;
-    thirdList: string;
-  }>;
-}
-
-interface TestimonialSection {
-  title: {
-    highlightText: string;
-    blackText: string;
-  };
-  description: string;
-  testimonials: Array<{
-    name: string;
-    feedback: string;
-    stars: number;
-  }>;
-}
 
 // Searchable dropdown component for courses
 const CourseSearchDropdown = ({
