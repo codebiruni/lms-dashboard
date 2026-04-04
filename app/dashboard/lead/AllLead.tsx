@@ -56,6 +56,7 @@ import {
 
 import EditLead from './EditLead'
 import { toast } from 'sonner'
+import Link from 'next/link'
 
 /* -------------------- Types -------------------- */
 
@@ -256,7 +257,7 @@ export default function AllLead() {
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold">Leads</h2>
           <Button asChild>
-            <a href="/dashboard/lead/create">Add Lead</a>
+            <Link href="/dashboard/lead/create">Add Lead</Link>
           </Button>
         </div>
 

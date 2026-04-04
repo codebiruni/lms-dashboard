@@ -36,15 +36,15 @@ interface EmailInfoData {
 // Common SMTP providers for quick reference
 const SMTP_PROVIDERS = [
   { name: "Gmail", host: "smtp.gmail.com", port: 587 },
-  { name: "Outlook/Hotmail", host: "smtp-mail.outlook.com", port: 587 },
-  { name: "Yahoo Mail", host: "smtp.mail.yahoo.com", port: 587 },
-  { name: "Office 365", host: "smtp.office365.com", port: 587 },
-  { name: "Amazon SES", host: "email-smtp.us-east-1.amazonaws.com", port: 587 },
-  { name: "SendGrid", host: "smtp.sendgrid.net", port: 587 },
-  { name: "Mailgun", host: "smtp.mailgun.org", port: 587 },
-  { name: "Postmark", host: "smtp.postmarkapp.com", port: 587 },
-  { name: "Zoho Mail", host: "smtp.zoho.com", port: 587 },
-  { name: "Custom", host: "", port: 587 },
+  // { name: "Outlook/Hotmail", host: "smtp-mail.outlook.com", port: 587 },
+  // { name: "Yahoo Mail", host: "smtp.mail.yahoo.com", port: 587 },
+  // { name: "Office 365", host: "smtp.office365.com", port: 587 },
+  // { name: "Amazon SES", host: "email-smtp.us-east-1.amazonaws.com", port: 587 },
+  // { name: "SendGrid", host: "smtp.sendgrid.net", port: 587 },
+  // { name: "Mailgun", host: "smtp.mailgun.org", port: 587 },
+  // { name: "Postmark", host: "smtp.postmarkapp.com", port: 587 },
+  // { name: "Zoho Mail", host: "smtp.zoho.com", port: 587 },
+  // { name: "Custom", host: "", port: 587 },
 ];
 
 export default function ManageEmail() {
@@ -397,7 +397,7 @@ export default function ManageEmail() {
           {emailInfoId && (
             <>
               <Separator />
-              <div className="space-y-4">
+              <div className="space-y-4 hidden">
                 <Label>Test Email Configuration</Label>
                 <p className="text-sm text-muted-foreground">
                   Send a test email to verify your configuration is working correctly.

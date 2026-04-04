@@ -601,7 +601,7 @@ export default function AllRecording() {
                     <h3 className="text-sm font-medium text-muted-foreground mb-1">
                       Video URL
                     </h3>
-                    <a 
+                    <Link 
                       href={selectedRecording.videoUrl}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -609,7 +609,7 @@ export default function AllRecording() {
                     >
                       <LinkIcon size={16} />
                       Watch Video
-                    </a>
+                    </Link>
                   </div>
                 </div>
 

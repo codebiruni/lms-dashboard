@@ -60,6 +60,7 @@ import {
 
 import EditStaff from './EditStaff'
 import { toast } from 'sonner'
+import Link from 'next/link'
 
 /* -------------------- Types -------------------- */
 
@@ -295,7 +296,7 @@ export default function AllStaff() {
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold">Staff Management</h2>
           <Button asChild>
-            <a href="/dashboard/staff/create">Add Staff</a>
+            <Link href="/dashboard/staff/create">Add Staff</Link>
           </Button>
         </div>
 

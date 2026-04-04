@@ -2,9 +2,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
-  UploadCloud,
   Loader2,
   Plus,
   Trash2,
@@ -12,18 +11,8 @@ import {
   ChevronLeft,
   Save,
   Star,
-  Users,
-  BookOpen,
-  Award,
-  Target,
-  Heart,
-  MessageCircle,
-  CheckCircle,
-  Search,
-  X,
 } from "lucide-react";
 import { toast } from "sonner";
-import Image from "next/image";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -56,8 +45,8 @@ import { Badge } from "@/components/ui/badge";
 import POSTDATA from "@/app/default/functions/Post";
 import GETDATA from "@/app/default/functions/GetData";
 import PATCHDATA from "@/app/default/functions/Patch";
-import useFetchCourseSections from "@/app/default/custom-component/useCouesSection";
 import useFetchCategory from "@/app/default/custom-component/useFeatchCategory";
+import useFetchCourses from "@/app/default/custom-component/useFeatchCourse";
 
 // Types based on the schema
 interface BannerSection {
@@ -67,7 +56,6 @@ interface BannerSection {
     blackText: string;
   };
   descRiption: string;
-  bannerPng: string | null;
   bottomBaseText: {
     firstText: string;
     secondText: string;
@@ -113,7 +101,6 @@ interface WelcomeSection {
     blackText: string;
   };
   description: string;
-  image: string | null;
   video: string;
 }
 
@@ -126,7 +113,6 @@ interface FeatureSection {
   features: Array<{
     title: string;
     description: string;
-    image: string | null;
   }>;
 }
 
@@ -139,7 +125,6 @@ interface WhyChooseUsSection {
   cards: Array<{
     title: string;
     description: string;
-    image: string | null;
   }>;
 }
 
@@ -165,21 +150,8 @@ interface TestimonialSection {
   testimonials: Array<{
     name: string;
     feedback: string;
-    image: string | null;
     stars: number;
   }>;
-}
-
-interface HomePageData {
-  _id?: string;
-  bannerSection: BannerSection;
-  courseSection: CourseSection;
-  categorySection: CategorySection;
-  welcomeSection: WelcomeSection;
-  fetureSection: FeatureSection;
-  whyChooseUsSection: WhyChooseUsSection;
-  instructorSection: InstructorSection;
-  testimonialSection: TestimonialSection;
 }
 
 // Searchable dropdown component for courses
@@ -195,25 +167,22 @@ const CourseSearchDropdown = ({
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   
-  const { courseSections, isLoading } = useFetchCourseSections({
-    search,
-    limit: 20,
-    published: true,
-  });
+  const { courses , isLoading} = useFetchCourses({ limit: 100 })
 
-  // Transform course sections to unique courses
-  const uniqueCourses = React.useMemo(() => {
+
+  const uniqueCourses = useMemo(() => {
     const coursesMap = new Map();
-    courseSections.forEach(section => {
-      if (section.course && !coursesMap.has(section.course._id)) {
-        coursesMap.set(section.course._id, {
-          _id: section.course._id,
-          title: section.course.title,
+    courses.forEach((course:any) => {
+      if (course && !coursesMap.has(course._id)) {
+        coursesMap.set(course._id, {
+          _id: course._id,
+          title: course.title,
         });
       }
     });
     return Array.from(coursesMap.values());
-  }, [courseSections]);
+  }, [courses]);
+
 
   return (
     <div className="space-y-2">
@@ -229,7 +198,6 @@ const CourseSearchDropdown = ({
             {selectedCourses.length > 0
               ? `${selectedCourses.length} course(s) selected`
               : "Select courses..."}
-            <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-full p-0" align="start">
@@ -249,17 +217,12 @@ const CourseSearchDropdown = ({
                     key={course._id}
                     value={course.title}
                     onSelect={() => {
-                      onSelect(course);
+                      if (!selectedCourses.some(c => c._id === course._id)) {
+                        onSelect(course);
+                      }
                       setOpen(false);
                     }}
                   >
-                    <CheckCircle
-                      className={`mr-2 h-4 w-4 ${
-                        selectedCourses.some(c => c._id === course._id)
-                          ? "text-primary"
-                          : "opacity-0"
-                      }`}
-                    />
                     {course.title}
                   </CommandItem>
                 ))}
@@ -274,10 +237,12 @@ const CourseSearchDropdown = ({
           {selectedCourses.map((course) => (
             <Badge key={course._id} variant="secondary" className="gap-1">
               {course.title}
-              <X
-                className="h-3 w-3 cursor-pointer"
+              <button
                 onClick={() => onRemove(course._id)}
-              />
+                className="ml-1 hover:text-red-500"
+              >
+                ×
+              </button>
             </Badge>
           ))}
         </div>
@@ -301,7 +266,7 @@ const CategorySearchDropdown = ({
   
   const { categories, isLoading } = useFetchCategory({
     search,
-    limit: 20,
+    limit: 100,
   });
 
   return (
@@ -318,7 +283,6 @@ const CategorySearchDropdown = ({
             {selectedCategories.length > 0
               ? `${selectedCategories.length} categor(ies) selected`
               : "Select categories..."}
-            <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-full p-0" align="start">
@@ -338,17 +302,12 @@ const CategorySearchDropdown = ({
                     key={category._id}
                     value={category.name}
                     onSelect={() => {
-                      onSelect({ _id: category._id, name: category.name });
+                      if (!selectedCategories.some(c => c._id === category._id)) {
+                        onSelect({ _id: category._id, name: category.name });
+                      }
                       setOpen(false);
                     }}
                   >
-                    <CheckCircle
-                      className={`mr-2 h-4 w-4 ${
-                        selectedCategories.some(c => c._id === category._id)
-                          ? "text-primary"
-                          : "opacity-0"
-                      }`}
-                    />
                     {category.name}
                   </CommandItem>
                 ))}
@@ -363,10 +322,12 @@ const CategorySearchDropdown = ({
           {selectedCategories.map((category) => (
             <Badge key={category._id} variant="secondary" className="gap-1">
               {category.name}
-              <X
-                className="h-3 w-3 cursor-pointer"
+              <button
                 onClick={() => onRemove(category._id)}
-              />
+                className="ml-1 hover:text-red-500"
+              >
+                ×
+              </button>
             </Badge>
           ))}
         </div>
@@ -375,7 +336,6 @@ const CategorySearchDropdown = ({
   );
 };
 
-// Tab order for navigation
 const TAB_ORDER = [
   "banner",
   "welcome",
@@ -398,8 +358,6 @@ export default function ManageHomePage() {
   const [bannerHighlightText, setBannerHighlightText] = useState("");
   const [bannerBlackText, setBannerBlackText] = useState("");
   const [bannerDescription, setBannerDescription] = useState("");
-  const [bannerImage, setBannerImage] = useState<File | null>(null);
-  const [bannerImagePreview, setBannerImagePreview] = useState<string | null>(null);
   const [bannerFirstBottomText, setBannerFirstBottomText] = useState("");
   const [bannerSecondBottomText, setBannerSecondBottomText] = useState("");
   const [bannerFirstList, setBannerFirstList] = useState("");
@@ -422,24 +380,22 @@ export default function ManageHomePage() {
   const [welcomeHighlightText, setWelcomeHighlightText] = useState("");
   const [welcomeBlackText, setWelcomeBlackText] = useState("");
   const [welcomeDescription, setWelcomeDescription] = useState("");
-  const [welcomeImage, setWelcomeImage] = useState<File | null>(null);
-  const [welcomeImagePreview, setWelcomeImagePreview] = useState<string | null>(null);
   const [welcomeVideo, setWelcomeVideo] = useState("");
 
   // Feature Section
   const [featureHighlightText, setFeatureHighlightText] = useState("");
   const [featureBlackText, setFeatureBlackText] = useState("");
   const [featureDescription, setFeatureDescription] = useState("");
-  const [features, setFeatures] = useState<Array<{ title: string; description: string; image: File | null; preview: string | null }>>([
-    { title: "", description: "", image: null, preview: null },
+  const [features, setFeatures] = useState<Array<{ title: string; description: string }>>([
+    { title: "", description: "" },
   ]);
 
   // Why Choose Us Section
   const [whyChooseHighlightText, setWhyChooseHighlightText] = useState("");
   const [whyChooseBlackText, setWhyChooseBlackText] = useState("");
   const [whyChooseDescription, setWhyChooseDescription] = useState("");
-  const [whyChooseCards, setWhyChooseCards] = useState<Array<{ title: string; description: string; image: File | null; preview: string | null }>>([
-    { title: "", description: "", image: null, preview: null },
+  const [whyChooseCards, setWhyChooseCards] = useState<Array<{ title: string; description: string }>>([
+    { title: "", description: "" },
   ]);
 
   // Instructor Section
@@ -454,14 +410,12 @@ export default function ManageHomePage() {
   const [testimonialHighlightText, setTestimonialHighlightText] = useState("");
   const [testimonialBlackText, setTestimonialBlackText] = useState("");
   const [testimonialDescription, setTestimonialDescription] = useState("");
-  const [testimonials, setTestimonials] = useState<Array<{ name: string; feedback: string; stars: number; image: File | null; preview: string | null }>>([
-    { name: "", feedback: "", stars: 5, image: null, preview: null },
+  const [testimonials, setTestimonials] = useState<Array<{ name: string; feedback: string; stars: number }>>([
+    { name: "", feedback: "", stars: 5 },
   ]);
 
-  // Track which tabs have been visited/validated
   const [validatedTabs, setValidatedTabs] = useState<Set<string>>(new Set());
 
-  // Fetch existing data on component mount
   useEffect(() => {
     fetchPageData();
   }, []);
@@ -480,7 +434,6 @@ export default function ManageHomePage() {
         setBannerHighlightText(data.bannerSection?.title?.highlightText || "");
         setBannerBlackText(data.bannerSection?.title?.blackText || "");
         setBannerDescription(data.bannerSection?.descRiption || "");
-        setBannerImagePreview(data.bannerSection?.bannerPng || null);
         setBannerFirstBottomText(data.bannerSection?.bottomBaseText?.firstText || "");
         setBannerSecondBottomText(data.bannerSection?.bottomBaseText?.secondText || "");
         setBannerFirstList(data.bannerSection?.list?.firstList || "");
@@ -517,7 +470,6 @@ export default function ManageHomePage() {
         setWelcomeHighlightText(data.welcomeSection?.title?.highlightText || "");
         setWelcomeBlackText(data.welcomeSection?.title?.blackText || "");
         setWelcomeDescription(data.welcomeSection?.description || "");
-        setWelcomeImagePreview(data.welcomeSection?.image || null);
         setWelcomeVideo(data.welcomeSection?.video || "");
 
         // Feature Section
@@ -525,14 +477,7 @@ export default function ManageHomePage() {
         setFeatureBlackText(data.fetureSection?.title?.blackText || "");
         setFeatureDescription(data.fetureSection?.description || "");
         if (data.fetureSection?.features) {
-          setFeatures(
-            data.fetureSection.features.map((f: any) => ({
-              title: f.title,
-              description: f.description,
-              image: null,
-              preview: f.image,
-            }))
-          );
+          setFeatures(data.fetureSection.features);
         }
 
         // Why Choose Us Section
@@ -540,14 +485,7 @@ export default function ManageHomePage() {
         setWhyChooseBlackText(data.whyChooseUsSection?.title?.blackText || "");
         setWhyChooseDescription(data.whyChooseUsSection?.description || "");
         if (data.whyChooseUsSection?.cards) {
-          setWhyChooseCards(
-            data.whyChooseUsSection.cards.map((c: any) => ({
-              title: c.title,
-              description: c.description,
-              image: null,
-              preview: c.image,
-            }))
-          );
+          setWhyChooseCards(data.whyChooseUsSection.cards);
         }
 
         // Instructor Section
@@ -563,18 +501,9 @@ export default function ManageHomePage() {
         setTestimonialBlackText(data.testimonialSection?.title?.blackText || "");
         setTestimonialDescription(data.testimonialSection?.description || "");
         if (data.testimonialSection?.testimonials) {
-          setTestimonials(
-            data.testimonialSection.testimonials.map((t: any) => ({
-              name: t.name,
-              feedback: t.feedback,
-              stars: t.stars,
-              image: null,
-              preview: t.image,
-            }))
-          );
+          setTestimonials(data.testimonialSection.testimonials);
         }
 
-        // Mark all tabs as validated since we have existing data
         setValidatedTabs(new Set(TAB_ORDER));
       }
     } catch (error: any) {
@@ -585,32 +514,11 @@ export default function ManageHomePage() {
     }
   };
 
-  // Image handlers
-  const handleImageChange = (
-    file: File,
-    setImage: React.Dispatch<React.SetStateAction<File | null>>,
-    setPreview: React.Dispatch<React.SetStateAction<string | null>>
-  ) => {
-    setImage(file);
-    setPreview(URL.createObjectURL(file));
-  };
-
-  const handleImageDrop = (
-    e: React.DragEvent<HTMLDivElement>,
-    setImage: React.Dispatch<React.SetStateAction<File | null>>,
-    setPreview: React.Dispatch<React.SetStateAction<string | null>>
-  ) => {
-    e.preventDefault();
-    if (e.dataTransfer.files?.[0]) {
-      handleImageChange(e.dataTransfer.files[0], setImage, setPreview);
-    }
-  };
-
   // Feature handlers
   const addFeature = () => {
     setFeatures((prev) => [
       ...prev,
-      { title: "", description: "", image: null, preview: null },
+      { title: "", description: "" },
     ]);
   };
 
@@ -623,7 +531,7 @@ export default function ManageHomePage() {
 
   const updateFeature = (
     index: number,
-    field: keyof Omit<typeof features[0], "image" | "preview">,
+    field: keyof typeof features[0],
     value: string
   ) => {
     setFeatures((prev) => {
@@ -633,24 +541,11 @@ export default function ManageHomePage() {
     });
   };
 
-  const handleFeatureImageChange = (
-    index: number,
-    file: File,
-    preview: string
-  ) => {
-    setFeatures((prev) => {
-      const updated = [...prev];
-      updated[index].image = file;
-      updated[index].preview = preview;
-      return updated;
-    });
-  };
-
   // Why Choose handlers
   const addWhyChooseCard = () => {
     setWhyChooseCards((prev) => [
       ...prev,
-      { title: "", description: "", image: null, preview: null },
+      { title: "", description: "" },
     ]);
   };
 
@@ -663,25 +558,12 @@ export default function ManageHomePage() {
 
   const updateWhyChooseCard = (
     index: number,
-    field: keyof Omit<typeof whyChooseCards[0], "image" | "preview">,
+    field: keyof typeof whyChooseCards[0],
     value: string
   ) => {
     setWhyChooseCards((prev) => {
       const updated = [...prev];
       updated[index] = { ...updated[index], [field]: value };
-      return updated;
-    });
-  };
-
-  const handleWhyChooseImageChange = (
-    index: number,
-    file: File,
-    preview: string
-  ) => {
-    setWhyChooseCards((prev) => {
-      const updated = [...prev];
-      updated[index].image = file;
-      updated[index].preview = preview;
       return updated;
     });
   };
@@ -717,7 +599,7 @@ export default function ManageHomePage() {
   const addTestimonial = () => {
     setTestimonials((prev) => [
       ...prev,
-      { name: "", feedback: "", stars: 5, image: null, preview: null },
+      { name: "", feedback: "", stars: 5 },
     ]);
   };
 
@@ -730,25 +612,12 @@ export default function ManageHomePage() {
 
   const updateTestimonial = (
     index: number,
-    field: keyof Omit<typeof testimonials[0], "image" | "preview">,
+    field: keyof typeof testimonials[0],
     value: string | number
   ) => {
     setTestimonials((prev) => {
       const updated = [...prev];
       updated[index] = { ...updated[index], [field]: value };
-      return updated;
-    });
-  };
-
-  const handleTestimonialImageChange = (
-    index: number,
-    file: File,
-    preview: string
-  ) => {
-    setTestimonials((prev) => {
-      const updated = [...prev];
-      updated[index].image = file;
-      updated[index].preview = preview;
       return updated;
     });
   };
@@ -769,10 +638,6 @@ export default function ManageHomePage() {
     }
     if (!bannerDescription.trim()) {
       toast.error("Banner description is required");
-      return false;
-    }
-    if (!bannerImagePreview && !bannerImage) {
-      toast.error("Banner image is required");
       return false;
     }
     if (!bannerFirstBottomText.trim() || !bannerSecondBottomText.trim()) {
@@ -797,10 +662,6 @@ export default function ManageHomePage() {
     }
     if (!welcomeDescription.trim()) {
       toast.error("Welcome section description is required");
-      return false;
-    }
-    if (!welcomeImagePreview && !welcomeImage) {
-      toast.error("Welcome section image is required");
       return false;
     }
     return true;
@@ -942,7 +803,6 @@ export default function ManageHomePage() {
     return true;
   };
 
-  // Navigation handlers
   const handleNext = () => {
     const currentIndex = TAB_ORDER.indexOf(activeTab);
     
@@ -1001,9 +861,7 @@ export default function ManageHomePage() {
     }
   };
 
-  // Submit handler
   const handleSubmit = async () => {
-    // Validate all tabs
     if (!validateBannerTab()) return;
     if (!validateWelcomeTab()) return;
     if (!validateCoursesTab()) return;
@@ -1015,9 +873,6 @@ export default function ManageHomePage() {
 
     try {
       setLoading(true);
-
-      const formData = new FormData();
-      const images: File[] = [];
 
       // Prepare the data structure
       const data = {
@@ -1110,36 +965,12 @@ export default function ManageHomePage() {
         },
       };
 
-      // Add the data as a JSON string
-      formData.append("data", JSON.stringify(data));
-
-      // Collect all images in the correct order
-      if (bannerImage) images.push(bannerImage);
-      if (welcomeImage) images.push(welcomeImage);
-      
-      features.forEach(f => {
-        if (f.image) images.push(f.image);
-      });
-      
-      whyChooseCards.forEach(c => {
-        if (c.image) images.push(c.image);
-      });
-      
-      testimonials.forEach(t => {
-        if (t.image) images.push(t.image);
-      });
-
-      // Append all images
-      images.forEach(image => {
-        formData.append("images", image);
-      });
-
       let response;
 
       if (pageId) {
-        response = await PATCHDATA(`/v1/home-page/${pageId}`, formData);
+        response = await PATCHDATA(`/v1/home-page/${pageId}`, data);
       } else {
-        response = await POSTDATA("/v1/home-page", formData);
+        response = await POSTDATA("/v1/home-page", data);
       }
 
       if (!response?.success) {
@@ -1207,20 +1038,18 @@ export default function ManageHomePage() {
               </TabsTrigger>
             </TabsList>
 
-            {/* Banner Tab */}
+            {/* Banner Tab - Same as before */}
             <TabsContent value="banner" className="space-y-6">
               <div className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label>
-                      Base Text <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      placeholder="e.g., WELCOME TO"
-                      value={bannerBaseText}
-                      onChange={(e) => setBannerBaseText(e.target.value)}
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label>
+                    Base Text <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    placeholder="e.g., WELCOME TO"
+                    value={bannerBaseText}
+                    onChange={(e) => setBannerBaseText(e.target.value)}
+                  />
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2">
@@ -1256,45 +1085,6 @@ export default function ManageHomePage() {
                     onChange={(e) => setBannerDescription(e.target.value)}
                     rows={3}
                   />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>
-                    Banner Image <span className="text-red-500">*</span>
-                  </Label>
-                  <div
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={(e) => handleImageDrop(e, setBannerImage, setBannerImagePreview)}
-                    className="relative flex h-40 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/40 bg-muted/30 transition hover:border-primary"
-                  >
-                    <input
-                      type="file"
-                      accept=".jpg,.jpeg,.png,.webp"
-                      className="absolute inset-0 cursor-pointer opacity-0"
-                      onChange={(e) =>
-                        e.target.files &&
-                        handleImageChange(e.target.files[0], setBannerImage, setBannerImagePreview)
-                      }
-                    />
-
-                    {bannerImagePreview ? (
-                      <div className="relative h-full w-full">
-                        <Image
-                          src={bannerImagePreview}
-                          alt="banner preview"
-                          fill
-                          className="rounded-lg object-cover"
-                        />
-                      </div>
-                    ) : (
-                      <>
-                        <UploadCloud className="mb-2 h-8 w-8 text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground">
-                          Drag & drop banner image here or click to upload
-                        </p>
-                      </>
-                    )}
-                  </div>
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2">
@@ -1390,45 +1180,6 @@ export default function ManageHomePage() {
                   onChange={(e) => setWelcomeDescription(e.target.value)}
                   rows={4}
                 />
-              </div>
-
-              <div className="space-y-2">
-                <Label>
-                  Welcome Image <span className="text-red-500">*</span>
-                </Label>
-                <div
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => handleImageDrop(e, setWelcomeImage, setWelcomeImagePreview)}
-                  className="relative flex h-40 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/40 bg-muted/30 transition hover:border-primary"
-                >
-                  <input
-                    type="file"
-                    accept=".jpg,.jpeg,.png,.webp"
-                    className="absolute inset-0 cursor-pointer opacity-0"
-                    onChange={(e) =>
-                      e.target.files &&
-                      handleImageChange(e.target.files[0], setWelcomeImage, setWelcomeImagePreview)
-                    }
-                  />
-
-                  {welcomeImagePreview ? (
-                    <div className="relative h-full w-full">
-                      <Image
-                        src={welcomeImagePreview}
-                        alt="welcome preview"
-                        fill
-                        className="rounded-lg object-cover"
-                      />
-                    </div>
-                  ) : (
-                    <>
-                      <UploadCloud className="mb-2 h-8 w-8 text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground">
-                        Upload welcome image
-                      </p>
-                    </>
-                  )}
-                </div>
               </div>
 
               <div className="space-y-2">
@@ -1594,15 +1345,13 @@ export default function ManageHomePage() {
               {features.map((feature, index) => (
                 <Card key={index} className="relative border">
                   <CardContent className="pt-6 space-y-4">
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div className="space-y-2">
-                        <Label>Feature Title</Label>
-                        <Input
-                          placeholder="Enter feature title"
-                          value={feature.title}
-                          onChange={(e) => updateFeature(index, "title", e.target.value)}
-                        />
-                      </div>
+                    <div className="space-y-2">
+                      <Label>Feature Title</Label>
+                      <Input
+                        placeholder="Enter feature title"
+                        value={feature.title}
+                        onChange={(e) => updateFeature(index, "title", e.target.value)}
+                      />
                     </div>
 
                     <div className="space-y-2">
@@ -1613,54 +1362,6 @@ export default function ManageHomePage() {
                         onChange={(e) => updateFeature(index, "description", e.target.value)}
                         rows={2}
                       />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Feature Image</Label>
-                      <div
-                        onDragOver={(e) => e.preventDefault()}
-                        onDrop={(e) => {
-                          e.preventDefault();
-                          if (e.dataTransfer.files?.[0]) {
-                            const file = e.dataTransfer.files[0];
-                            handleFeatureImageChange(
-                              index,
-                              file,
-                              URL.createObjectURL(file)
-                            );
-                          }
-                        }}
-                        className="relative flex h-24 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/40 bg-muted/30 transition hover:border-primary"
-                      >
-                        <input
-                          type="file"
-                          accept=".jpg,.jpeg,.png,.webp"
-                          className="absolute inset-0 cursor-pointer opacity-0"
-                          onChange={(e) =>
-                            e.target.files &&
-                            handleFeatureImageChange(
-                              index,
-                              e.target.files[0],
-                              URL.createObjectURL(e.target.files[0])
-                            )
-                          }
-                        />
-                        {feature.preview ? (
-                          <div className="relative h-full w-full">
-                            <Image
-                              src={feature.preview}
-                              alt="feature"
-                              fill
-                              className="rounded-lg object-cover"
-                            />
-                          </div>
-                        ) : (
-                          <>
-                            <UploadCloud className="mb-1 h-5 w-5 text-muted-foreground" />
-                            <p className="text-xs text-muted-foreground">Upload image</p>
-                          </>
-                        )}
-                      </div>
                     </div>
 
                     <div className="flex justify-end">
@@ -1734,15 +1435,13 @@ export default function ManageHomePage() {
               {whyChooseCards.map((card, index) => (
                 <Card key={index} className="relative border">
                   <CardContent className="pt-6 space-y-4">
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div className="space-y-2">
-                        <Label>Card Title</Label>
-                        <Input
-                          placeholder="Enter card title"
-                          value={card.title}
-                          onChange={(e) => updateWhyChooseCard(index, "title", e.target.value)}
-                        />
-                      </div>
+                    <div className="space-y-2">
+                      <Label>Card Title</Label>
+                      <Input
+                        placeholder="Enter card title"
+                        value={card.title}
+                        onChange={(e) => updateWhyChooseCard(index, "title", e.target.value)}
+                      />
                     </div>
 
                     <div className="space-y-2">
@@ -1753,54 +1452,6 @@ export default function ManageHomePage() {
                         onChange={(e) => updateWhyChooseCard(index, "description", e.target.value)}
                         rows={2}
                       />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Card Image</Label>
-                      <div
-                        onDragOver={(e) => e.preventDefault()}
-                        onDrop={(e) => {
-                          e.preventDefault();
-                          if (e.dataTransfer.files?.[0]) {
-                            const file = e.dataTransfer.files[0];
-                            handleWhyChooseImageChange(
-                              index,
-                              file,
-                              URL.createObjectURL(file)
-                            );
-                          }
-                        }}
-                        className="relative flex h-24 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/40 bg-muted/30 transition hover:border-primary"
-                      >
-                        <input
-                          type="file"
-                          accept=".jpg,.jpeg,.png,.webp"
-                          className="absolute inset-0 cursor-pointer opacity-0"
-                          onChange={(e) =>
-                            e.target.files &&
-                            handleWhyChooseImageChange(
-                              index,
-                              e.target.files[0],
-                              URL.createObjectURL(e.target.files[0])
-                            )
-                          }
-                        />
-                        {card.preview ? (
-                          <div className="relative h-full w-full">
-                            <Image
-                              src={card.preview}
-                              alt="why choose"
-                              fill
-                              className="rounded-lg object-cover"
-                            />
-                          </div>
-                        ) : (
-                          <>
-                            <UploadCloud className="mb-1 h-5 w-5 text-muted-foreground" />
-                            <p className="text-xs text-muted-foreground">Upload image</p>
-                          </>
-                        )}
-                      </div>
                     </div>
 
                     <div className="flex justify-end">
@@ -2014,54 +1665,6 @@ export default function ManageHomePage() {
                       />
                     </div>
 
-                    <div className="space-y-2">
-                      <Label>Profile Image</Label>
-                      <div
-                        onDragOver={(e) => e.preventDefault()}
-                        onDrop={(e) => {
-                          e.preventDefault();
-                          if (e.dataTransfer.files?.[0]) {
-                            const file = e.dataTransfer.files[0];
-                            handleTestimonialImageChange(
-                              index,
-                              file,
-                              URL.createObjectURL(file)
-                            );
-                          }
-                        }}
-                        className="relative flex h-24 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/40 bg-muted/30 transition hover:border-primary"
-                      >
-                        <input
-                          type="file"
-                          accept=".jpg,.jpeg,.png,.webp"
-                          className="absolute inset-0 cursor-pointer opacity-0"
-                          onChange={(e) =>
-                            e.target.files &&
-                            handleTestimonialImageChange(
-                              index,
-                              e.target.files[0],
-                              URL.createObjectURL(e.target.files[0])
-                            )
-                          }
-                        />
-                        {testimonial.preview ? (
-                          <div className="relative h-full w-full">
-                            <Image
-                              src={testimonial.preview}
-                              alt="testimonial"
-                              fill
-                              className="rounded-lg object-cover"
-                            />
-                          </div>
-                        ) : (
-                          <>
-                            <UploadCloud className="mb-1 h-5 w-5 text-muted-foreground" />
-                            <p className="text-xs text-muted-foreground">Upload image</p>
-                          </>
-                        )}
-                      </div>
-                    </div>
-
                     <div className="flex justify-end">
                       <Button
                         type="button"
@@ -2083,7 +1686,6 @@ export default function ManageHomePage() {
 
           <Separator className="my-6" />
 
-          {/* Navigation and Submit Buttons */}
           <div className="flex justify-between">
             <Button
               onClick={handlePrevious}

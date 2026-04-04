@@ -165,6 +165,7 @@ export default function AllQuestions() {
   const [editOpen, setEditOpen] = useState(false)
   const [deleteType, setDeleteType] = useState<'soft' | 'hard'>('soft')
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null)
+  
 
   const {
     questions,
@@ -275,11 +276,11 @@ export default function AllQuestions() {
         />
       )}
 
-      <div className="space-y-6 p-4">
+      <div className="space-y-6 w-full">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold">Questions</h2>
           <Button asChild>
-            <Link href="/dashboard/question/create">
+            <Link href="/instructor/question/create">
               Add Question
             </Link>
           </Button>

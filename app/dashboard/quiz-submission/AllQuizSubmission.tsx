@@ -615,12 +615,12 @@ export default function AllQuizSubmission() {
                               </div>
                             </div>
                             
-                            <div>
+                            {/* <div>
                               <p className="text-xs text-muted-foreground mb-1">Correct Answer:</p>
                               <div className="p-2 bg-green-100 dark:bg-green-900/20 border border-green-300 dark:border-green-700 rounded text-sm">
                                 {quizQuestion?.correctAnswer || 'N/A'}
                               </div>
-                            </div>
+                            </div> */}
                           </div>
                         </div>
                       )

@@ -207,7 +207,7 @@ export default function AllAttendance() {
 
   /* ---------------- UI ---------------- */
   return (
-    <div className="space-y-6 p-4">
+    <div className="space-y-6 w-full">
       {/* Edit Attendance Dialog */}
       {selectedAttendance && (
         <EditAttendance

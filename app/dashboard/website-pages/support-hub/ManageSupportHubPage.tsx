@@ -3,6 +3,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useForm, useFieldArray, Controller } from "react-hook-form";
 import {
   UploadCloud,
   Loader2,
@@ -34,38 +35,36 @@ import PATCHDATA from "@/app/default/functions/Patch";
 interface FAQ {
   question: string;
   answer: string;
-  link: string;
+  link?: string;
 }
 
 interface SupportCategory {
   title: string;
   description: string;
-  icon: string;
+  icon?: string;
 }
 
 interface ContactOption {
   title: string;
   description: string;
   value: string;
-  link: string;
-  icon: string;
+  link?: string;
+  icon?: string;
 }
 
-interface SupportHubData {
-  _id?: string;
+interface SupportHubFormData {
   baseText: string;
   bannerText: {
     blackText: string;
     colorText: string;
   };
-  bannerImage: string | null;
-  shortDescription: string;
-  helpSectionTitle: string;
-  helpSectionDescription: string;
+  shortDescription?: string;
+  helpSectionTitle?: string;
+  helpSectionDescription?: string;
   supportCategories: SupportCategory[];
-  contactSectionTitle: string;
+  contactSectionTitle?: string;
   contactOptions: ContactOption[];
-  faqSectionTitle: string;
+  faqSectionTitle?: string;
   faq: FAQ[];
 }
 
@@ -85,39 +84,65 @@ export default function ManageSupportHubPage() {
   const [pageId, setPageId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("basic");
 
-  // Basic fields
-  const [baseText, setBaseText] = useState("");
-  const [shortDescription, setShortDescription] = useState("");
+  // Initialize react-hook-form
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors, isDirty },
+    watch,
+  } = useForm<SupportHubFormData>({
+    defaultValues: {
+      baseText: "",
+      bannerText: {
+        blackText: "",
+        colorText: "",
+      },
+      shortDescription: "",
+      helpSectionTitle: "",
+      helpSectionDescription: "",
+      supportCategories: [{ title: "", description: "", icon: "" }],
+      contactSectionTitle: "",
+      contactOptions: [{ title: "", description: "", value: "", link: "", icon: "" }],
+      faqSectionTitle: "",
+      faq: [{ question: "", answer: "", link: "" }],
+    },
+  });
 
-  // Banner fields
-  const [bannerBlackText, setBannerBlackText] = useState("");
-  const [bannerColorText, setBannerColorText] = useState("");
-  const [bannerImage, setBannerImage] = useState<File | null>(null);
-  const [bannerImagePreview, setBannerImagePreview] = useState<string | null>(null);
+  // UseFieldArray for dynamic arrays
+  const {
+    fields: supportCategoryFields,
+    append: appendSupportCategory,
+    remove: removeSupportCategory,
+  } = useFieldArray({
+    control,
+    name: "supportCategories",
+  });
 
-  // Help section fields
-  const [helpSectionTitle, setHelpSectionTitle] = useState("");
-  const [helpSectionDescription, setHelpSectionDescription] = useState("");
+  const {
+    fields: contactOptionFields,
+    append: appendContactOption,
+    remove: removeContactOption,
+  } = useFieldArray({
+    control,
+    name: "contactOptions",
+  });
 
-  // Support Categories
-  const [supportCategories, setSupportCategories] = useState<SupportCategory[]>([
-    { title: "", description: "", icon: "" },
-  ]);
-
-  // Contact section
-  const [contactSectionTitle, setContactSectionTitle] = useState("");
-  const [contactOptions, setContactOptions] = useState<ContactOption[]>([
-    { title: "", description: "", value: "", link: "", icon: "" },
-  ]);
-
-  // FAQ section
-  const [faqSectionTitle, setFaqSectionTitle] = useState("");
-  const [faq, setFaq] = useState<FAQ[]>([
-    { question: "", answer: "", link: "" },
-  ]);
+  const {
+    fields: faqFields,
+    append: appendFaq,
+    remove: removeFaq,
+  } = useFieldArray({
+    control,
+    name: "faq",
+  });
 
   // Track which tabs have been visited/validated
   const [validatedTabs, setValidatedTabs] = useState<Set<string>>(new Set());
+
+  // Watch form values for validation
+  const watchedValues = watch();
 
   // Fetch existing data on component mount
   useEffect(() => {
@@ -133,35 +158,28 @@ export default function ManageSupportHubPage() {
         const data = response.data;
         setPageId(data._id || null);
 
-        // Set basic fields
-        setBaseText(data.baseText || "");
-        setShortDescription(data.shortDescription || "");
-
-        // Set banner fields
-        setBannerBlackText(data.bannerText?.blackText || "");
-        setBannerColorText(data.bannerText?.colorText || "");
-        setBannerImagePreview(data.bannerImage || null);
-
-        // Set help section fields
-        setHelpSectionTitle(data.helpSectionTitle || "");
-        setHelpSectionDescription(data.helpSectionDescription || "");
-
-        // Set support categories
-        if (data.supportCategories?.length > 0) {
-          setSupportCategories(data.supportCategories);
-        }
-
-        // Set contact section
-        setContactSectionTitle(data.contactSectionTitle || "");
-        if (data.contactOptions?.length > 0) {
-          setContactOptions(data.contactOptions);
-        }
-
-        // Set FAQ section
-        setFaqSectionTitle(data.faqSectionTitle || "");
-        if (data.faq?.length > 0) {
-          setFaq(data.faq);
-        }
+        // Reset form with fetched data
+        reset({
+          baseText: data.baseText || "",
+          bannerText: {
+            blackText: data.bannerText?.blackText || "",
+            colorText: data.bannerText?.colorText || "",
+          },
+          shortDescription: data.shortDescription || "",
+          helpSectionTitle: data.helpSectionTitle || "",
+          helpSectionDescription: data.helpSectionDescription || "",
+          supportCategories: data.supportCategories?.length > 0 
+            ? data.supportCategories 
+            : [{ title: "", description: "", icon: "" }],
+          contactSectionTitle: data.contactSectionTitle || "",
+          contactOptions: data.contactOptions?.length > 0 
+            ? data.contactOptions 
+            : [{ title: "", description: "", value: "", link: "", icon: "" }],
+          faqSectionTitle: data.faqSectionTitle || "",
+          faq: data.faq?.length > 0 
+            ? data.faq 
+            : [{ question: "", answer: "", link: "" }],
+        });
 
         // Mark all tabs as validated since we have existing data
         setValidatedTabs(new Set(TAB_ORDER));
@@ -174,136 +192,27 @@ export default function ManageSupportHubPage() {
     }
   };
 
-  // Image handlers
-  const handleImageChange = (
-    file: File,
-    setImage: React.Dispatch<React.SetStateAction<File | null>>,
-    setPreview: React.Dispatch<React.SetStateAction<string | null>>
-  ) => {
-    setImage(file);
-    setPreview(URL.createObjectURL(file));
-  };
-
-  const handleImageDrop = (
-    e: React.DragEvent<HTMLDivElement>,
-    setImage: React.Dispatch<React.SetStateAction<File | null>>,
-    setPreview: React.Dispatch<React.SetStateAction<string | null>>
-  ) => {
-    e.preventDefault();
-    if (e.dataTransfer.files?.[0]) {
-      handleImageChange(e.dataTransfer.files[0], setImage, setPreview);
-    }
-  };
-
-  // Support Category handlers
-  const addSupportCategory = () => {
-    setSupportCategories((prev) => [
-      ...prev,
-      { title: "", description: "", icon: "" },
-    ]);
-  };
-
-  const removeSupportCategory = (index: number) => {
-    setSupportCategories((prev) => {
-      if (prev.length <= 1) return prev;
-      return prev.filter((_, i) => i !== index);
-    });
-  };
-
-  const updateSupportCategory = (
-    index: number,
-    field: keyof SupportCategory,
-    value: string
-  ) => {
-    setSupportCategories((prev) => {
-      const updated = [...prev];
-      updated[index] = { ...updated[index], [field]: value };
-      return updated;
-    });
-  };
-
-  // Contact Option handlers
-  const addContactOption = () => {
-    setContactOptions((prev) => [
-      ...prev,
-      { title: "", description: "", value: "", link: "", icon: "" },
-    ]);
-  };
-
-  const removeContactOption = (index: number) => {
-    setContactOptions((prev) => {
-      if (prev.length <= 1) return prev;
-      return prev.filter((_, i) => i !== index);
-    });
-  };
-
-  const updateContactOption = (
-    index: number,
-    field: keyof ContactOption,
-    value: string
-  ) => {
-    setContactOptions((prev) => {
-      const updated = [...prev];
-      updated[index] = { ...updated[index], [field]: value };
-      return updated;
-    });
-  };
-
-  // FAQ handlers
-  const addFaq = () => {
-    setFaq((prev) => [
-      ...prev,
-      { question: "", answer: "", link: "" },
-    ]);
-  };
-
-  const removeFaq = (index: number) => {
-    setFaq((prev) => {
-      if (prev.length <= 1) return prev;
-      return prev.filter((_, i) => i !== index);
-    });
-  };
-
-  const updateFaq = (
-    index: number,
-    field: keyof FAQ,
-    value: string
-  ) => {
-    setFaq((prev) => {
-      const updated = [...prev];
-      updated[index] = { ...updated[index], [field]: value };
-      return updated;
-    });
-  };
-
   // Validation functions for each tab
   const validateBasicTab = (): boolean => {
-    if (!baseText.trim()) {
+    const baseText = watchedValues.baseText;
+    if (!baseText?.trim()) {
       toast.error("Base text is required");
       return false;
     }
-
-    if (!shortDescription.trim()) {
-      toast.error("Short description is required");
-      return false;
-    }
-
     return true;
   };
 
   const validateBannerTab = (): boolean => {
-    if (!bannerBlackText.trim()) {
+    const blackText = watchedValues.bannerText?.blackText;
+    const colorText = watchedValues.bannerText?.colorText;
+    
+    if (!blackText?.trim()) {
       toast.error("Banner black text is required");
       return false;
     }
 
-    if (!bannerColorText.trim()) {
+    if (!colorText?.trim()) {
       toast.error("Banner color text is required");
-      return false;
-    }
-
-    if (!bannerImagePreview && !bannerImage) {
-      toast.error("Banner image is required");
       return false;
     }
 
@@ -311,23 +220,14 @@ export default function ManageSupportHubPage() {
   };
 
   const validateHelpSectionTab = (): boolean => {
-    if (!helpSectionTitle.trim()) {
-      toast.error("Help section title is required");
-      return false;
-    }
-
-    if (!helpSectionDescription.trim()) {
-      toast.error("Help section description is required");
-      return false;
-    }
-
+    // Help section fields are optional
     return true;
   };
 
   const validateCategoriesTab = (): boolean => {
-    // Check if at least one category has data
-    const hasValidCategory = supportCategories.some(
-      cat => cat.title.trim() || cat.description.trim()
+    const categories = watchedValues.supportCategories;
+    const hasValidCategory = categories?.some(
+      cat => cat?.title?.trim() || cat?.description?.trim()
     );
 
     if (!hasValidCategory) {
@@ -339,14 +239,9 @@ export default function ManageSupportHubPage() {
   };
 
   const validateContactTab = (): boolean => {
-    if (!contactSectionTitle.trim()) {
-      toast.error("Contact section title is required");
-      return false;
-    }
-
-    // Check if at least one contact option has data
-    const hasValidContact = contactOptions.some(
-      opt => opt.title.trim() || opt.value.trim()
+    const contactOptions = watchedValues.contactOptions;
+    const hasValidContact = contactOptions?.some(
+      opt => opt?.title?.trim() || opt?.value?.trim()
     );
 
     if (!hasValidContact) {
@@ -358,14 +253,9 @@ export default function ManageSupportHubPage() {
   };
 
   const validateFaqTab = (): boolean => {
-    if (!faqSectionTitle.trim()) {
-      toast.error("FAQ section title is required");
-      return false;
-    }
-
-    // Check if at least one FAQ has data
-    const hasValidFaq = faq.some(
-      item => item.question.trim() || item.answer.trim()
+    const faq = watchedValues.faq;
+    const hasValidFaq = faq?.some(
+      item => item?.question?.trim() || item?.answer?.trim()
     );
 
     if (!hasValidFaq) {
@@ -429,12 +319,11 @@ export default function ManageSupportHubPage() {
     }
   };
 
-  // Submit handler
-  const handleSubmit = async () => {
-    // Validate all tabs
+  // Submit handler - sends JSON data instead of FormData
+  const onSubmit = async (data: SupportHubFormData) => {
+    // Validate required tabs
     if (!validateBasicTab()) return;
     if (!validateBannerTab()) return;
-    if (!validateHelpSectionTab()) return;
     if (!validateCategoriesTab()) return;
     if (!validateContactTab()) return;
     if (!validateFaqTab()) return;
@@ -442,40 +331,49 @@ export default function ManageSupportHubPage() {
     try {
       setLoading(true);
 
-      const formData = new FormData();
-
-      // Append basic fields
-      formData.append("baseText", baseText);
-      formData.append("shortDescription", shortDescription);
-
-      // Append banner fields
-      formData.append("bannerText[blackText]", bannerBlackText);
-      formData.append("bannerText[colorText]", bannerColorText);
-      if (bannerImage) {
-        formData.append("bannerImage", bannerImage);
-      }
-
-      // Append help section fields
-      formData.append("helpSectionTitle", helpSectionTitle);
-      formData.append("helpSectionDescription", helpSectionDescription);
-
-      // Append support categories
-      formData.append("supportCategories", JSON.stringify(supportCategories));
-
-      // Append contact section
-      formData.append("contactSectionTitle", contactSectionTitle);
-      formData.append("contactOptions", JSON.stringify(contactOptions));
-
-      // Append FAQ section
-      formData.append("faqSectionTitle", faqSectionTitle);
-      formData.append("faq", JSON.stringify(faq));
+      // Clean up the data before sending
+      const cleanedData = {
+        baseText: data.baseText,
+        bannerText: {
+          blackText: data.bannerText.blackText,
+          colorText: data.bannerText.colorText,
+        },
+        shortDescription: data.shortDescription || undefined,
+        helpSectionTitle: data.helpSectionTitle || undefined,
+        helpSectionDescription: data.helpSectionDescription || undefined,
+        supportCategories: data.supportCategories
+          .filter(cat => cat.title?.trim() || cat.description?.trim())
+          .map(cat => ({
+            title: cat.title || "",
+            description: cat.description || "",
+            ...(cat.icon && { icon: cat.icon }),
+          })),
+        contactSectionTitle: data.contactSectionTitle || undefined,
+        contactOptions: data.contactOptions
+          .filter(opt => opt.title?.trim() || opt.value?.trim())
+          .map(opt => ({
+            title: opt.title || "",
+            description: opt.description || "",
+            value: opt.value || "",
+            ...(opt.link && { link: opt.link }),
+            ...(opt.icon && { icon: opt.icon }),
+          })),
+        faqSectionTitle: data.faqSectionTitle || undefined,
+        faq: data.faq
+          .filter(item => item.question?.trim() || item.answer?.trim())
+          .map(item => ({
+            question: item.question || "",
+            answer: item.answer || "",
+            ...(item.link && { link: item.link }),
+          })),
+      };
 
       let response;
 
       if (pageId) {
-        response = await PATCHDATA(`/v1/support-hub-page/${pageId}`, formData);
+        response = await PATCHDATA(`/v1/support-hub-page/${pageId}`, cleanedData);
       } else {
-        response = await POSTDATA("/v1/support-hub-page", formData);
+        response = await POSTDATA("/v1/support-hub-page", cleanedData);
       }
 
       if (!response?.success) {
@@ -483,8 +381,9 @@ export default function ManageSupportHubPage() {
       }
 
       toast.success(`Support hub ${pageId ? "updated" : "created"} successfully!`);
-      fetchPageData();
+      fetchPageData(); // Refresh data to get updated _id
     } catch (error: any) {
+      console.error("Submit error:", error);
       toast.error(error.message || "Something went wrong");
     } finally {
       setLoading(false);
@@ -515,500 +414,433 @@ export default function ManageSupportHubPage() {
         </CardHeader>
 
         <CardContent>
-          <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-6">
-              <TabsTrigger 
-                value="basic" 
-                className={validatedTabs.has("basic") ? "border-green-500 border" : ""}
-              >
-                Basic Info {validatedTabs.has("basic") && "✓"}
-              </TabsTrigger>
-              <TabsTrigger 
-                value="banner"
-                className={validatedTabs.has("banner") ? "border-green-500 border" : ""}
-              >
-                Banner {validatedTabs.has("banner") && "✓"}
-              </TabsTrigger>
-              <TabsTrigger 
-                value="help-section"
-                className={validatedTabs.has("help-section") ? "border-green-500 border" : ""}
-              >
-                Help Section {validatedTabs.has("help-section") && "✓"}
-              </TabsTrigger>
-              <TabsTrigger 
-                value="categories"
-                className={validatedTabs.has("categories") ? "border-green-500 border" : ""}
-              >
-                Categories {validatedTabs.has("categories") && "✓"}
-              </TabsTrigger>
-              <TabsTrigger 
-                value="contact"
-                className={validatedTabs.has("contact") ? "border-green-500 border" : ""}
-              >
-                Contact {validatedTabs.has("contact") && "✓"}
-              </TabsTrigger>
-              <TabsTrigger 
-                value="faq"
-                className={validatedTabs.has("faq") ? "border-green-500 border" : ""}
-              >
-                FAQ {validatedTabs.has("faq") && "✓"}
-              </TabsTrigger>
-            </TabsList>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
+              <TabsList className="grid w-full grid-cols-6">
+                <TabsTrigger 
+                  value="basic" 
+                  className={validatedTabs.has("basic") ? "border-green-500 border" : ""}
+                >
+                  Basic Info {validatedTabs.has("basic") && "✓"}
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="banner"
+                  className={validatedTabs.has("banner") ? "border-green-500 border" : ""}
+                >
+                  Banner {validatedTabs.has("banner") && "✓"}
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="help-section"
+                  className={validatedTabs.has("help-section") ? "border-green-500 border" : ""}
+                >
+                  Help Section {validatedTabs.has("help-section") && "✓"}
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="categories"
+                  className={validatedTabs.has("categories") ? "border-green-500 border" : ""}
+                >
+                  Categories {validatedTabs.has("categories") && "✓"}
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="contact"
+                  className={validatedTabs.has("contact") ? "border-green-500 border" : ""}
+                >
+                  Contact {validatedTabs.has("contact") && "✓"}
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="faq"
+                  className={validatedTabs.has("faq") ? "border-green-500 border" : ""}
+                >
+                  FAQ {validatedTabs.has("faq") && "✓"}
+                </TabsTrigger>
+              </TabsList>
 
-            {/* Basic Info Tab */}
-            <TabsContent value="basic" className="space-y-4">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label>
-                    Base Text <span className="text-red-500">*</span>
-                  </Label>
-                  <Textarea
-                    placeholder="Enter base text for the support hub page"
-                    value={baseText}
-                    onChange={(e) => setBaseText(e.target.value)}
-                    rows={3}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Main heading or introduction text for the support hub
+              {/* Basic Info Tab */}
+              <TabsContent value="basic" className="space-y-4">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>
+                      Base Text <span className="text-red-500">*</span>
+                    </Label>
+                    <Textarea
+                      placeholder="Enter base text for the support hub page"
+                      {...register("baseText", { 
+                        required: "Base text is required",
+                        minLength: {
+                          value: 1,
+                          message: "Base text is required"
+                        }
+                      })}
+                      rows={3}
+                    />
+                    {errors.baseText && (
+                      <p className="text-sm text-red-500">{errors.baseText.message}</p>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      Main heading or introduction text for the support hub (required)
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Short Description (Optional)</Label>
+                    <Textarea
+                      placeholder="Enter a brief description"
+                      {...register("shortDescription")}
+                      rows={2}
+                    />
+                  </div>
+                </div>
+              </TabsContent>
+
+              {/* Banner Tab */}
+              <TabsContent value="banner" className="space-y-6">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label>
+                      Banner Black Text <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      placeholder="e.g., Support"
+                      {...register("bannerText.blackText", { 
+                        required: "Banner black text is required" 
+                      })}
+                    />
+                    {errors.bannerText?.blackText && (
+                      <p className="text-sm text-red-500">{errors.bannerText.blackText.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>
+                      Banner Color Text <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      placeholder="e.g., Hub"
+                      {...register("bannerText.colorText", { 
+                        required: "Banner color text is required" 
+                      })}
+                    />
+                    {errors.bannerText?.colorText && (
+                      <p className="text-sm text-red-500">{errors.bannerText.colorText.message}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="rounded-lg bg-muted/30 p-4">
+                  <p className="text-sm font-medium">Preview:</p>
+                  <p className="text-xl">
+                    <span className="text-foreground">{watchedValues.bannerText?.blackText || "Support"}</span>{" "}
+                    <span className="text-primary">{watchedValues.bannerText?.colorText || "Hub"}</span>
                   </p>
                 </div>
+              </TabsContent>
 
-                <div className="space-y-2">
-                  <Label>
-                    Short Description <span className="text-red-500">*</span>
-                  </Label>
-                  <Textarea
-                    placeholder="Enter a brief description"
-                    value={shortDescription}
-                    onChange={(e) => setShortDescription(e.target.value)}
-                    rows={2}
-                  />
+              {/* Help Section Tab */}
+              <TabsContent value="help-section" className="space-y-4">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Help Section Title (Optional)</Label>
+                    <Input
+                      placeholder="e.g., How Can We Help You?"
+                      {...register("helpSectionTitle")}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Help Section Description (Optional)</Label>
+                    <Textarea
+                      placeholder="Enter description for the help section"
+                      {...register("helpSectionDescription")}
+                      rows={3}
+                    />
+                  </div>
                 </div>
-              </div>
-            </TabsContent>
+              </TabsContent>
 
-            {/* Banner Tab */}
-            <TabsContent value="banner" className="space-y-6">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>
-                    Banner Black Text <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    placeholder="e.g., Support"
-                    value={bannerBlackText}
-                    onChange={(e) => setBannerBlackText(e.target.value)}
-                  />
+              {/* Support Categories Tab */}
+              <TabsContent value="categories" className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label>Support Categories</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => appendSupportCategory({ title: "", description: "", icon: "" })}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Category
+                  </Button>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>
-                    Banner Color Text <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    placeholder="e.g., Hub"
-                    value={bannerColorText}
-                    onChange={(e) => setBannerColorText(e.target.value)}
-                  />
-                </div>
-              </div>
+                {supportCategoryFields.map((field, index) => (
+                  <Card key={field.id} className="relative border">
+                    <CardContent className="pt-6">
+                      <div className="grid gap-4">
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <div className="space-y-2">
+                            <Label>Title</Label>
+                            <Input
+                              placeholder="Category title"
+                              {...register(`supportCategories.${index}.title`)}
+                            />
+                          </div>
 
-              <div className="rounded-lg bg-muted/30 p-4">
-                <p className="text-sm font-medium">Preview:</p>
-                <p className="text-xl">
-                  <span className="text-foreground">{bannerBlackText || "Support"}</span>{" "}
-                  <span className="text-primary">{bannerColorText || "Hub"}</span>
+                          <div className="space-y-2">
+                            <Label>Icon (Optional)</Label>
+                            <Input
+                              placeholder="Icon name or URL"
+                              {...register(`supportCategories.${index}.icon`)}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Description</Label>
+                          <Textarea
+                            placeholder="Category description"
+                            {...register(`supportCategories.${index}.description`)}
+                            rows={2}
+                          />
+                        </div>
+
+                        <div className="flex justify-end">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeSupportCategory(index)}
+                            className="text-red-500 hover:text-red-600"
+                            disabled={supportCategoryFields.length <= 1}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Remove Category
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+                <p className="text-sm text-muted-foreground">
+                  At least one support category is required
                 </p>
-              </div>
+              </TabsContent>
 
-              <div className="space-y-2">
-                <Label>
-                  Banner Image <span className="text-red-500">*</span>
-                </Label>
-                <div
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => handleImageDrop(e, setBannerImage, setBannerImagePreview)}
-                  className="relative flex h-40 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/40 bg-muted/30 transition hover:border-primary"
-                >
-                  <input
-                    type="file"
-                    accept=".jpg,.jpeg,.png,.webp"
-                    className="absolute inset-0 cursor-pointer opacity-0"
-                    onChange={(e) =>
-                      e.target.files &&
-                      handleImageChange(e.target.files[0], setBannerImage, setBannerImagePreview)
-                    }
+              {/* Contact Options Tab */}
+              <TabsContent value="contact" className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Contact Section Title (Optional)</Label>
+                  <Input
+                    placeholder="e.g., Get in Touch"
+                    {...register("contactSectionTitle")}
                   />
+                </div>
 
-                  {bannerImagePreview ? (
-                    <div className="relative h-full w-full">
-                      <Image
-                        src={bannerImagePreview}
-                        alt="banner preview"
-                        fill
-                        className="rounded-lg object-cover"
-                      />
-                    </div>
+                <div className="flex items-center justify-between">
+                  <Label>Contact Options</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => appendContactOption({ title: "", description: "", value: "", link: "", icon: "" })}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Contact Option
+                  </Button>
+                </div>
+
+                {contactOptionFields.map((field, index) => (
+                  <Card key={field.id} className="relative border">
+                    <CardContent className="pt-6">
+                      <div className="grid gap-4">
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <div className="space-y-2">
+                            <Label>Title</Label>
+                            <Input
+                              placeholder="e.g., Email Support"
+                              {...register(`contactOptions.${index}.title`)}
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>Icon (Optional)</Label>
+                            <Input
+                              placeholder="Icon name or URL"
+                              {...register(`contactOptions.${index}.icon`)}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Description</Label>
+                          <Input
+                            placeholder="Brief description"
+                            {...register(`contactOptions.${index}.description`)}
+                          />
+                        </div>
+
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <div className="space-y-2">
+                            <Label>Value</Label>
+                            <Input
+                              placeholder="e.g., support@example.com"
+                              {...register(`contactOptions.${index}.value`)}
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>Link (Optional)</Label>
+                            <Input
+                              placeholder="URL or mailto link"
+                              {...register(`contactOptions.${index}.link`)}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex justify-end">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeContactOption(index)}
+                            className="text-red-500 hover:text-red-600"
+                            disabled={contactOptionFields.length <= 1}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Remove Option
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+                <p className="text-sm text-muted-foreground">
+                  At least one contact option is required
+                </p>
+              </TabsContent>
+
+              {/* FAQ Tab */}
+              <TabsContent value="faq" className="space-y-4">
+                <div className="space-y-2">
+                  <Label>FAQ Section Title (Optional)</Label>
+                  <Input
+                    placeholder="e.g., Frequently Asked Questions"
+                    {...register("faqSectionTitle")}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Label>FAQs</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => appendFaq({ question: "", answer: "", link: "" })}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add FAQ
+                  </Button>
+                </div>
+
+                {faqFields.map((field, index) => (
+                  <Card key={field.id} className="relative border">
+                    <CardContent className="pt-6">
+                      <div className="grid gap-4">
+                        <div className="space-y-2">
+                          <Label>Question</Label>
+                          <Input
+                            placeholder="Enter question"
+                            {...register(`faq.${index}.question`)}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Answer</Label>
+                          <Textarea
+                            placeholder="Enter answer"
+                            {...register(`faq.${index}.answer`)}
+                            rows={3}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Link (Optional)</Label>
+                          <Input
+                            placeholder="Related article link"
+                            {...register(`faq.${index}.link`)}
+                          />
+                        </div>
+
+                        <div className="flex justify-end">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeFaq(index)}
+                            className="text-red-500 hover:text-red-600"
+                            disabled={faqFields.length <= 1}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Remove FAQ
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+                <p className="text-sm text-muted-foreground">
+                  At least one FAQ is required
+                </p>
+              </TabsContent>
+            </Tabs>
+
+            <Separator className="my-6" />
+
+            {/* Navigation and Submit Buttons */}
+            <div className="flex justify-between">
+              <Button
+                onClick={handlePrevious}
+                disabled={isFirstTab || loading}
+                variant="outline"
+                size="lg"
+                type="button"
+              >
+                <ChevronLeft className="mr-2 h-4 w-4" />
+                Previous
+              </Button>
+
+              {isLastTab ? (
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  size="lg"
+                  className="min-w-50 bg-green-600 hover:bg-green-700"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Saving...
+                    </>
                   ) : (
                     <>
-                      <UploadCloud className="mb-2 h-8 w-8 text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground">
-                        Drag & drop banner image here or click to upload
-                      </p>
+                      <Save className="mr-2 h-4 w-4" />
+                      {pageId ? "Update Support Hub" : "Create Support Hub"}
                     </>
                   )}
-                </div>
-              </div>
-            </TabsContent>
-
-            {/* Help Section Tab */}
-            <TabsContent value="help-section" className="space-y-4">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label>
-                    Help Section Title <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    placeholder="e.g., How Can We Help You?"
-                    value={helpSectionTitle}
-                    onChange={(e) => setHelpSectionTitle(e.target.value)}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>
-                    Help Section Description <span className="text-red-500">*</span>
-                  </Label>
-                  <Textarea
-                    placeholder="Enter description for the help section"
-                    value={helpSectionDescription}
-                    onChange={(e) => setHelpSectionDescription(e.target.value)}
-                    rows={3}
-                  />
-                </div>
-              </div>
-            </TabsContent>
-
-            {/* Support Categories Tab */}
-            <TabsContent value="categories" className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label>Support Categories</Label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={addSupportCategory}
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Category
                 </Button>
-              </div>
-
-              {supportCategories.map((category, index) => (
-                <Card key={index} className="relative border">
-                  <CardContent className="pt-6">
-                    <div className="grid gap-4">
-                      <div className="grid gap-4 md:grid-cols-2">
-                        <div className="space-y-2">
-                          <Label>Title</Label>
-                          <Input
-                            placeholder="Category title"
-                            value={category.title}
-                            onChange={(e) =>
-                              updateSupportCategory(index, "title", e.target.value)
-                            }
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label>Icon (optional)</Label>
-                          <Input
-                            placeholder="Icon name or URL"
-                            value={category.icon}
-                            onChange={(e) =>
-                              updateSupportCategory(index, "icon", e.target.value)
-                            }
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Description</Label>
-                        <Textarea
-                          placeholder="Category description"
-                          value={category.description}
-                          onChange={(e) =>
-                            updateSupportCategory(index, "description", e.target.value)
-                          }
-                          rows={2}
-                        />
-                      </div>
-
-                      <div className="flex justify-end">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeSupportCategory(index)}
-                          className="text-red-500 hover:text-red-600"
-                          disabled={supportCategories.length <= 1}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Remove Category
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-              <p className="text-sm text-muted-foreground">
-                At least one support category is required
-              </p>
-            </TabsContent>
-
-            {/* Contact Options Tab */}
-            <TabsContent value="contact" className="space-y-4">
-              <div className="space-y-2">
-                <Label>
-                  Contact Section Title <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  placeholder="e.g., Get in Touch"
-                  value={contactSectionTitle}
-                  onChange={(e) => setContactSectionTitle(e.target.value)}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <Label>Contact Options</Label>
+              ) : (
                 <Button
+                  onClick={handleNext}
+                  disabled={loading}
+                  size="lg"
+                  className="min-w-50"
                   type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={addContactOption}
                 >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Contact Option
+                  Next
+                  <ChevronRight className="ml-2 h-4 w-4" />
                 </Button>
-              </div>
-
-              {contactOptions.map((option, index) => (
-                <Card key={index} className="relative border">
-                  <CardContent className="pt-6">
-                    <div className="grid gap-4">
-                      <div className="grid gap-4 md:grid-cols-2">
-                        <div className="space-y-2">
-                          <Label>Title</Label>
-                          <Input
-                            placeholder="e.g., Email Support"
-                            value={option.title}
-                            onChange={(e) =>
-                              updateContactOption(index, "title", e.target.value)
-                            }
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label>Icon (optional)</Label>
-                          <Input
-                            placeholder="Icon name or URL"
-                            value={option.icon}
-                            onChange={(e) =>
-                              updateContactOption(index, "icon", e.target.value)
-                            }
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Description</Label>
-                        <Input
-                          placeholder="Brief description"
-                          value={option.description}
-                          onChange={(e) =>
-                            updateContactOption(index, "description", e.target.value)
-                          }
-                        />
-                      </div>
-
-                      <div className="grid gap-4 md:grid-cols-2">
-                        <div className="space-y-2">
-                          <Label>Value</Label>
-                          <Input
-                            placeholder="e.g., support@example.com"
-                            value={option.value}
-                            onChange={(e) =>
-                              updateContactOption(index, "value", e.target.value)
-                            }
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label>Link (optional)</Label>
-                          <Input
-                            placeholder="URL or mailto link"
-                            value={option.link}
-                            onChange={(e) =>
-                              updateContactOption(index, "link", e.target.value)
-                            }
-                          />
-                        </div>
-                      </div>
-
-                      <div className="flex justify-end">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeContactOption(index)}
-                          className="text-red-500 hover:text-red-600"
-                          disabled={contactOptions.length <= 1}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Remove Option
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-              <p className="text-sm text-muted-foreground">
-                At least one contact option is required
-              </p>
-            </TabsContent>
-
-            {/* FAQ Tab */}
-            <TabsContent value="faq" className="space-y-4">
-              <div className="space-y-2">
-                <Label>
-                  FAQ Section Title <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  placeholder="e.g., Frequently Asked Questions"
-                  value={faqSectionTitle}
-                  onChange={(e) => setFaqSectionTitle(e.target.value)}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <Label>FAQs</Label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={addFaq}
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add FAQ
-                </Button>
-              </div>
-
-              {faq.map((item, index) => (
-                <Card key={index} className="relative border">
-                  <CardContent className="pt-6">
-                    <div className="grid gap-4">
-                      <div className="space-y-2">
-                        <Label>Question</Label>
-                        <Input
-                          placeholder="Enter question"
-                          value={item.question}
-                          onChange={(e) =>
-                            updateFaq(index, "question", e.target.value)
-                          }
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Answer</Label>
-                        <Textarea
-                          placeholder="Enter answer"
-                          value={item.answer}
-                          onChange={(e) =>
-                            updateFaq(index, "answer", e.target.value)
-                          }
-                          rows={3}
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Link (optional)</Label>
-                        <Input
-                          placeholder="Related article link"
-                          value={item.link}
-                          onChange={(e) =>
-                            updateFaq(index, "link", e.target.value)
-                          }
-                        />
-                      </div>
-
-                      <div className="flex justify-end">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeFaq(index)}
-                          className="text-red-500 hover:text-red-600"
-                          disabled={faq.length <= 1}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Remove FAQ
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-              <p className="text-sm text-muted-foreground">
-                At least one FAQ is required
-              </p>
-            </TabsContent>
-          </Tabs>
-
-          <Separator className="my-6" />
-
-          {/* Navigation and Submit Buttons */}
-          <div className="flex justify-between">
-            <Button
-              onClick={handlePrevious}
-              disabled={isFirstTab || loading}
-              variant="outline"
-              size="lg"
-            >
-              <ChevronLeft className="mr-2 h-4 w-4" />
-              Previous
-            </Button>
-
-            {isLastTab ? (
-              <Button
-                onClick={handleSubmit}
-                disabled={loading}
-                size="lg"
-                className="min-w-50 bg-green-600 hover:bg-green-700"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className="mr-2 h-4 w-4" />
-                    {pageId ? "Update Support Hub" : "Create Support Hub"}
-                  </>
-                )}
-              </Button>
-            ) : (
-              <Button
-                onClick={handleNext}
-                disabled={loading}
-                size="lg"
-                className="min-w-50"
-              >
-                Next
-                <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
-            )}
-          </div>
+              )}
+            </div>
+          </form>
         </CardContent>
       </Card>
     </div>

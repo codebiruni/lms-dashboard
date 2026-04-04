@@ -1,7 +1,10 @@
 import React from 'react'
+import AllQuizSumission from './AllQuizSumission'
 
 export default function page() {
   return (
-    <div>page</div>
+    <div className='py-6'>
+      <AllQuizSumission />
+    </div>
   )
 }

@@ -80,7 +80,7 @@ export const instructorNavItems = [
     items: [
       { title: "Attendance", url: "/instructor/attendance" },
       { title: "Course Progress", url: "/instructor/course-progress" },
-      { title: "Enrollments", url: "/instructor/enrollment" },
+      // { title: "Enrollments", url: "/instructor/enrollment" },
     ],
   },
 

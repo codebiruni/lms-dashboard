@@ -344,7 +344,7 @@ export default function AllMeeting() {
 
                     <TableCell>
                       <div className="max-w-50">
-                        <a 
+                        <Link 
                           href={meeting.meetingLink} 
                           target="_blank" 
                           rel="noopener noreferrer"
@@ -352,7 +352,7 @@ export default function AllMeeting() {
                         >
                           <LinkIcon size={14} />
                           <span className="truncate">{meeting.meetingLink}</span>
-                        </a>
+                        </Link>
                       </div>
                     </TableCell>
 
@@ -562,7 +562,7 @@ export default function AllMeeting() {
                   <h3 className="text-sm font-medium text-muted-foreground mb-1">
                     Meeting Link
                   </h3>
-                  <a 
+                  <Link 
                     href={selectedMeeting.meetingLink}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -570,7 +570,7 @@ export default function AllMeeting() {
                   >
                     <LinkIcon size={16} />
                     {selectedMeeting.meetingLink}
-                  </a>
+                  </Link>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">

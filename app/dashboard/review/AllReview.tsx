@@ -52,6 +52,8 @@ import {
 import Image from 'next/image'
 import EditReview from './EditReview'
 import { toast } from 'sonner'
+import { usePathname } from 'next/navigation'
+import Link from 'next/link'
 
 /* -------------------- Types -------------------- */
 
@@ -155,6 +157,7 @@ export default function AllReview() {
   const [editOpen, setEditOpen] = useState(false)
   const [deleteType, setDeleteType] = useState<'soft' | 'hard' | 'restore'>('soft')
   const [selectedReview, setSelectedReview] = useState<Review | null>(null)
+  const pathname = usePathname()
 
   /* ---------- Fetch Reviews ---------- */
   const { reviews, meta, isLoading, isFetching, refetch } = useFetchReview({
@@ -246,9 +249,11 @@ export default function AllReview() {
       <div className="space-y-6 p-4">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold">Reviews</h2>
-          <Button asChild>
-            <a href="/dashboard/review/create">Add Review</a>
-          </Button>
+          {pathname.startsWith('/instructor') ? null : (
+            <Button asChild>
+              <Link href="/dashboard/review/create">Add Review</Link>
+            </Button>
+          )}
         </div>
 
         {/* ---------- Filters ---------- */}

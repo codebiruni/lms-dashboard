@@ -57,6 +57,7 @@ import {
 } from '@/components/ui/select'
 
 import EditSubCategory from './EditSubCategory'
+import Link from 'next/link'
 
 /* -------------------- Types -------------------- */
 
@@ -248,9 +249,9 @@ export default function AllSubCategory() {
           <div className="flex gap-2">
             {/* CREATE BUTTON */}
             <Button asChild>
-              <a href="/dashboard/sub-category/create">
+              <Link href="/dashboard/sub-category/create">
                 Add Sub Category
-              </a>
+              </Link>
             </Button>
           </div>
         </CardHeader>

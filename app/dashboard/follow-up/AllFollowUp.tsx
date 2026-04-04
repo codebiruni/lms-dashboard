@@ -57,6 +57,7 @@ import {
 import Image from 'next/image'
 import EditFollowUp from './EditFollowUp'
 import { toast } from 'sonner'
+import Link from 'next/link'
 
 /* -------------------- Types -------------------- */
 
@@ -281,7 +282,7 @@ export default function AllFollowUp() {
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold">Follow-Ups</h2>
           <Button asChild>
-            <a href="/dashboard/follow-up/create">Add Follow-Up</a>
+            <Link href="/dashboard/follow-up/create">Add Follow-Up</Link>
           </Button>
         </div>
 

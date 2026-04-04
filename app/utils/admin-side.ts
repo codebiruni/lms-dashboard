@@ -42,6 +42,7 @@ export const adminNavItems = [
       { title: "Create Course", url: "/dashboard/course/create" },
       { title: "Create Section", url: "/dashboard/course-section/create" },
       { title: "Create Lesson", url: "/dashboard/lesson/create" },
+      { title: "Create Video", url: "/dashboard/videos/create" },
       { title: "Create Assignment", url: "/dashboard/assignment/create" },
       { title: "Create Quiz", url: "/dashboard/quiz/create" },
       { title: "Create Quiz Submission", url: "/dashboard/quiz-submission/create" },
@@ -59,6 +60,7 @@ export const adminNavItems = [
       { title: "Live Classes", url: "/dashboard/live-class" },
       { title: "Meetings", url: "/dashboard/meeting" },
       { title: "Recordings", url: "/dashboard/recording" },
+      { title: "Videos", url: "/dashboard/videos" },
     ],
   },
 
@@ -73,6 +75,7 @@ export const adminNavItems = [
       { title: "Create Live Class", url: "/dashboard/live-class/create" },
       { title: "Create Meeting", url: "/dashboard/meeting/create" },
       { title: "Upload Recording", url: "/dashboard/recording/create" },
+      { title: "Upload Video", url: "/dashboard/videos/create" },
     ],
   },
 

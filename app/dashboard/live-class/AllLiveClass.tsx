@@ -53,6 +53,7 @@ import {
 } from 'lucide-react'
 
 import EditLiveClass from './EditLiveClass'
+import Link from 'next/link'
 
 /* -------------------- Types -------------------- */
 
@@ -650,7 +651,7 @@ export default function AllLiveClass() {
                     Meeting Link
                   </h3>
                   {selectedLiveClass.meetingLink ? (
-                    <a 
+                    <Link 
                       href={selectedLiveClass.meetingLink}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -658,7 +659,7 @@ export default function AllLiveClass() {
                     >
                       <LinkIcon size={16} />
                       {selectedLiveClass.meetingLink}
-                    </a>
+                    </Link>
                   ) : (
                     <p className="text-sm text-muted-foreground">No meeting link provided</p>
                   )}
@@ -669,7 +670,7 @@ export default function AllLiveClass() {
                     <h3 className="text-sm font-medium text-muted-foreground mb-1">
                       Recording URL
                     </h3>
-                    <a 
+                    <Link 
                       href={selectedLiveClass.recordingUrl}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -677,7 +678,7 @@ export default function AllLiveClass() {
                     >
                       <Video size={16} />
                       {selectedLiveClass.recordingUrl}
-                    </a>
+                    </Link>
                   </div>
                 )}
 

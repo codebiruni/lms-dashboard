@@ -55,31 +55,31 @@ const SMS_PROVIDERS = [
     api: "https://api.bulkmessagebd.com/api/send",
     description: "Bulk Message BD",
   },
-  {
-    name: "SMS.net.bd",
-    api: "https://api.sms.net.bd/api/send",
-    description: "SMS.net.bd",
-  },
-  {
-    name: "ElitBuzz",
-    api: "https://api.elitbuzz.com/api/send",
-    description: "ElitBuzz",
-  },
-  {
-    name: "GreenWeb",
-    api: "https://api.greenweb.com.bd/api",
-    description: "GreenWeb",
-  },
-  {
-    name: "MIM SMS",
-    api: "https://api.mimsms.com/api/send",
-    description: "MIM SMS",
-  },
-  {
-    name: "Custom",
-    api: "",
-    description: "Custom API",
-  },
+  // {
+  //   name: "SMS.net.bd",
+  //   api: "https://api.sms.net.bd/api/send",
+  //   description: "SMS.net.bd",
+  // },
+  // {
+  //   name: "ElitBuzz",
+  //   api: "https://api.elitbuzz.com/api/send",
+  //   description: "ElitBuzz",
+  // },
+  // {
+  //   name: "GreenWeb",
+  //   api: "https://api.greenweb.com.bd/api",
+  //   description: "GreenWeb",
+  // },
+  // {
+  //   name: "MIM SMS",
+  //   api: "https://api.mimsms.com/api/send",
+  //   description: "MIM SMS",
+  // },
+  // {
+  //   name: "Custom",
+  //   api: "",
+  //   description: "Custom API",
+  // },
 ];
 
 // Example data for testing
@@ -321,8 +321,8 @@ export default function ManageSms() {
         </CardHeader>
 
         <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 ">
+            <TabsList className="grid w-full grid-cols-2 hidden">
               <TabsTrigger value="configuration">Configuration</TabsTrigger>
               <TabsTrigger value="test">Test SMS</TabsTrigger>
             </TabsList>

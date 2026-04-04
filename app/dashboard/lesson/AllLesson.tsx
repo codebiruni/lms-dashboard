@@ -52,6 +52,7 @@ import {
 } from 'lucide-react'
 import useFetchLessons from '@/app/default/custom-component/useFeatchLesson'
 import EditLesson from './EditLesson'
+import Link from 'next/link'
 
 /* -------------------- Constants -------------------- */
 
@@ -572,14 +573,14 @@ export default function AllLesson() {
                       Video URL
                     </h3>
                     <div className="bg-muted/20 rounded p-3">
-                      <a 
+                      <Link 
                         href={selectedLesson.videoUrl} 
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="text-blue-600 hover:underline break-all text-sm"
                       >
                         {selectedLesson.videoUrl}
-                      </a>
+                      </Link>
                     </div>
                   </div>
                 )}
@@ -591,14 +592,14 @@ export default function AllLesson() {
                       Document URL
                     </h3>
                     <div className="bg-muted/20 rounded p-3">
-                      <a 
+                      <Link 
                         href={selectedLesson.documentUrl} 
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="text-blue-600 hover:underline break-all text-sm"
                       >
                         {selectedLesson.documentUrl}
-                      </a>
+                      </Link>
                     </div>
                   </div>
                 )}
