@@ -19,18 +19,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import POSTDATA from "@/app/default/functions/Post";
-import GETDATA from "@/app/default/functions/GetData";
-
-interface Course {
-  _id: string;
-  title: string;
-}
-
-interface Lesson {
-  _id: string;
-  title: string;
-  serialNumber: number;
-}
+import useFetchLessons from "@/app/default/custom-component/useFeatchLesson";
+import useFetchCourses from "@/app/default/custom-component/useFeatchCourse";
 
 interface Quiz {
   question: string;
@@ -39,8 +29,6 @@ interface Quiz {
 }
 
 export default function UploadVideo() {
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [lessons, setLessons] = useState<Lesson[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState("");
   const [selectedLessonId, setSelectedLessonId] = useState("");
   const [serialNumber, setSerialNumber] = useState("");
@@ -52,52 +40,63 @@ export default function UploadVideo() {
     { question: "", options: ["", "", "", ""], correctAnswer: "" },
   ]);
   const [loading, setLoading] = useState(false);
-  const [loadingCourses, setLoadingCourses] = useState(false);
 
-  // Fetch courses on component mount
-  useEffect(() => {
-    fetchCourses();
-  }, []);
+  // Fetch courses using React Query
+  const {
+    courses,
+    isLoading: loadingCourses,
+    error: coursesError,
+  } = useFetchCourses({
+    page: 1,
+    limit: 100,
+    deleted: false,
+    sortBy: "createdAt",
+    sortOrder: -1,
+  });
 
   // Fetch lessons when course is selected
+  const {
+    lessons,
+    isLoading: loadingLessons,
+    error: lessonsError,
+    refetch: refetchLessons,
+  } = useFetchLessons({
+    courseSection: selectedCourseId,
+    page: 1,
+    limit: 100,
+    deleted: false,
+    published: true,
+    sortBy: "order",
+    sortOrder: 1,
+  });
+
+  // Show error toasts if any
   useEffect(() => {
-    if (selectedCourseId) {
-      fetchLessons(selectedCourseId);
-    } else {
-      setLessons([]);
-      setSelectedLessonId("");
+    if (coursesError) {
+      toast.error("Failed to fetch courses");
     }
+  }, [coursesError]);
+
+  useEffect(() => {
+    if (lessonsError) {
+      toast.error("Failed to fetch lessons");
+    }
+  }, [lessonsError]);
+
+  // Reset selected lesson when course changes
+  useEffect(() => {
+    setSelectedLessonId("");
   }, [selectedCourseId]);
-
-  const fetchCourses = async () => {
-    try {
-      setLoadingCourses(true);
-      const res = await GETDATA(`/v1/course`);
-      if (res.success && res.data) {
-        setCourses(res.data);
-      }
-    } catch (error: any) {
-      toast.error(error.message || "Failed to fetch courses");
-    } finally {
-      setLoadingCourses(false);
-    }
-  };
-
-  const fetchLessons = async (courseId: string) => {
-    try {
-      const res = await GETDATA(`/v1/course-lesson/course/${courseId}`);
-      if (res.success && res.data) {
-        setLessons(res.data);
-      }
-    } catch (error: any) {
-      toast.error(error.message || "Failed to fetch lessons");
-    }
-  };
 
   /* -------------------- VIDEO HANDLERS -------------------- */
   const handleVideoFile = (file: File) => {
     // Validate video type
-    const validTypes = ["video/mp4", "video/mpeg", "video/quicktime", "video/x-msvideo"];
+    const validTypes = [
+      "video/mp4",
+      "video/mpeg",
+      "video/quicktime",
+      "video/x-msvideo",
+    ];
     if (!validTypes.includes(file.type)) {
       toast.error("Please upload a valid video file (MP4, MPEG, MOV, AVI)");
       return;
@@ -143,7 +142,11 @@ export default function UploadVideo() {
     setQuizzes(updated);
   };
 
-  const updateQuizOption = (quizIndex: number, optionIndex: number, value: string) => {
+  const updateQuizOption = (
+    quizIndex: number,
+    optionIndex: number,
+    value: string
+  ) => {
     const updated = [...quizzes];
     updated[quizIndex].options[optionIndex] = value;
     setQuizzes(updated);
@@ -221,7 +224,7 @@ export default function UploadVideo() {
       }
 
       toast.success("Video uploaded successfully 🎉");
-      
+
       // Reset form
       setSelectedCourseId("");
       setSelectedLessonId("");
@@ -230,7 +233,9 @@ export default function UploadVideo() {
       setDescription("");
       setVideo(null);
       setVideoPreview(null);
-      setQuizzes([{ question: "", options: ["", "", "", ""], correctAnswer: "" }]);
+      setQuizzes([
+        { question: "", options: ["", "", "", ""], correctAnswer: "" },
+      ]);
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -267,6 +272,12 @@ export default function UploadVideo() {
                 ))}
               </SelectContent>
             </Select>
+            {loadingCourses && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Loading courses...
+              </div>
+            )}
           </div>
 
           {/* ---------------- LESSON SELECTION ---------------- */}
@@ -275,7 +286,7 @@ export default function UploadVideo() {
             <Select
               value={selectedLessonId}
               onValueChange={setSelectedLessonId}
-              disabled={!selectedCourseId}
+              disabled={!selectedCourseId || loadingLessons}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Choose a lesson" />
@@ -283,11 +294,22 @@ export default function UploadVideo() {
               <SelectContent>
                 {lessons.map((lesson) => (
                   <SelectItem key={lesson._id} value={lesson._id}>
-                    Lesson {lesson.serialNumber}: {lesson.title}
+                    Lesson {lesson.order}: {lesson.title}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            {loadingLessons && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Loading lessons...
+              </div>
+            )}
+            {selectedCourseId && lessons.length === 0 && !loadingLessons && (
+              <p className="text-sm text-yellow-600">
+                No lessons found for this course. Please add lessons first.
+              </p>
+            )}
           </div>
 
           {/* ---------------- SERIAL NUMBER ---------------- */}
@@ -299,6 +321,9 @@ export default function UploadVideo() {
               value={serialNumber}
               onChange={(e) => setSerialNumber(e.target.value)}
             />
+            <p className="text-xs text-muted-foreground">
+              The order of this video within the lesson
+            </p>
           </div>
 
           {/* ---------------- VIDEO TITLE ---------------- */}
