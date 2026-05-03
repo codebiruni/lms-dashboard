@@ -162,258 +162,289 @@ export default function CreateCertificate({ onSuccess }: CreateCertificateProps)
   }
 
   return (
-    <>
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Generate Certificate
+    <div style={{ width: '100%', height: '100%', padding: '2%' }}>
+      <Card style={{ width: '100%', height: '100%' }}>
+        <CardHeader style={{ padding: '3%' }}>
+          <CardTitle style={{ display: 'flex', alignItems: 'center', gap: '2%' }}>
+            <FileText style={{ height: '5%', width: '5%' }} />
+            <span style={{ fontSize: '1.5rem' }}>Generate Certificate</span>
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Student Selection with Search */}
-          <div className="space-y-2">
-            <Label>Select Student <span className="text-red-500">*</span></Label>
-            <Popover open={studentOpen} onOpenChange={setStudentOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={studentOpen}
-                  className="w-full justify-between"
-                >
-                  {selectedStudent ? (
-                    <div className="flex items-center gap-2">
-                      {selectedStudent.userId?.image && (
-                        <Image
-                          src={selectedStudent.userId.image}
-                          alt={selectedStudent.userId.name}
-                          width={24}
-                          height={24}
-                          className="rounded full"
-                        />
-                      )}
-                      <span>{selectedStudent.userId?.name || selectedStudent.id}</span>
-                      <Badge variant="outline" className="ml-2 text-xs">
-                        {selectedStudent.id}
-                      </Badge>
-                    </div>
-                  ) : (
-                    "Select a student..."
-                  )}
-                  <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-100 p-0">
-                <Command>
-                  <CommandInput 
-                    placeholder="Search students..." 
-                    onValueChange={setStudentSearch}
-                  />
-                  <CommandEmpty>
-                    {studentsLoading ? 'Loading...' : 'No students found.'}
-                  </CommandEmpty>
-                  <CommandGroup className="max-h-64 overflow-auto">
-                    {students.map((student: any) => (
-                      <CommandItem
-                        key={student._id}
-                        value={`${student.userId?.name || ''} ${student.id}`}
-                        onSelect={() => {
-                          setSelectedStudent(student)
-                          setStudentOpen(false)
-                        }}
-                      >
-                        <div className="flex items-center gap-2 w-full">
-                          {student.userId?.image && (
-                            <Image
-                              src={student.userId.image}
-                              alt={student.userId.name}
-                              width={32}
-                              height={32}
-                              className="rounded full"
-                            />
-                          )}
-                          <div className="flex-1">
-                            <p className="font-medium">
-                              {student.userId?.name || 'Unnamed Student'}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              ID: {student.id} | Email: {student.userId?.email || 'N/A'}
-                            </p>
+        <CardContent style={{ padding: '3%' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '5%' }}>
+            {/* Student Selection with Search */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2%', width: '100%' }}>
+              <Label style={{ marginBottom: '1%' }}>
+                Select Student <span style={{ color: 'red' }}>*</span>
+              </Label>
+              <Popover open={studentOpen} onOpenChange={setStudentOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={studentOpen}
+                    style={{ 
+                      width: '100%', 
+                      justifyContent: 'space-between',
+                      padding: '2%'
+                    }}
+                  >
+                    {selectedStudent ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '2%' }}>
+                        {selectedStudent.userId?.image && (
+                          <Image
+                            src={selectedStudent.userId.image}
+                            alt={selectedStudent.userId.name}
+                            width={24}
+                            height={24}
+                            className="rounded-full"
+                          />
+                        )}
+                        <span>{selectedStudent.userId?.name || selectedStudent.id}</span>
+                        <Badge variant="outline" style={{ marginLeft: '2%', fontSize: '70%' }}>
+                          {selectedStudent.id}
+                        </Badge>
+                      </div>
+                    ) : (
+                      "Select a student..."
+                    )}
+                    <Search style={{ marginLeft: '2%', height: '4%', width: '4%', opacity: 0.5 }} />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent style={{ width: '90%', padding: 0 }}>
+                  <Command>
+                    <CommandInput 
+                      placeholder="Search students..." 
+                      onValueChange={setStudentSearch}
+                    />
+                    <CommandEmpty>
+                      {studentsLoading ? 'Loading...' : 'No students found.'}
+                    </CommandEmpty>
+                    <CommandGroup style={{ maxHeight: '50%', overflow: 'auto' }}>
+                      {students.map((student: any) => (
+                        <CommandItem
+                          key={student._id}
+                          value={`${student.userId?.name || ''} ${student.id}`}
+                          onSelect={() => {
+                            setSelectedStudent(student)
+                            setStudentOpen(false)
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '2%', width: '100%' }}>
+                            {student.userId?.image && (
+                              <Image
+                                src={student.userId.image}
+                                alt={student.userId.name}
+                                width={32}
+                                height={32}
+                                className="rounded-full"
+                              />
+                            )}
+                            <div style={{ flex: 1 }}>
+                              <p style={{ fontWeight: '500' }}>
+                                {student.userId?.name || 'Unnamed Student'}
+                              </p>
+                              <p style={{ fontSize: '70%', color: 'gray' }}>
+                                ID: {student.id} | Email: {student.userId?.email || 'N/A'}
+                              </p>
+                            </div>
+                            {selectedStudent?._id === student._id && (
+                              <Badge variant="default" style={{ marginLeft: '2%' }}>
+                                Selected
+                              </Badge>
+                            )}
                           </div>
-                          {selectedStudent?._id === student._id && (
-                            <Badge variant="default" className="ml-2">
-                              Selected
-                            </Badge>
-                          )}
-                        </div>
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </Command>
-              </PopoverContent>
-            </Popover>
-          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
 
-          {/* Course Selection with Search */}
-          <div className="space-y-2">
-            <Label>Select Course <span className="text-red-500">*</span></Label>
-            <Popover open={courseOpen} onOpenChange={setCourseOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={courseOpen}
-                  className="w-full justify-between"
-                >
-                  {selectedCourse ? (
-                    <div className="flex items-center gap-2">
-                      {selectedCourse.thumbnail && (
-                        <Image
-                          src={selectedCourse.thumbnail}
-                          alt={selectedCourse.title}
-                          width={24}
-                          height={24}
-                          className="rounded"
-                        />
-                      )}
-                      <span>{selectedCourse.title}</span>
-                      <Badge variant="outline" className="ml-2 text-xs">
-                        {selectedCourse.level}
-                      </Badge>
-                    </div>
-                  ) : (
-                    "Select a course..."
-                  )}
-                  <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-100 p-0">
-                <Command>
-                  <CommandInput 
-                    placeholder="Search courses..." 
-                    onValueChange={setCourseSearch}
-                  />
-                  <CommandEmpty>
-                    {coursesLoading ? 'Loading...' : 'No courses found.'}
-                  </CommandEmpty>
-                  <CommandGroup className="max-h-64 overflow-auto">
-                    {courses.map((course: any) => (
-                      <CommandItem
-                        key={course._id}
-                        value={course.title}
-                        onSelect={() => {
-                          setSelectedCourse(course)
-                          setCourseOpen(false)
-                        }}
-                      >
-                        <div className="flex items-center gap-2 w-full">
-                          {course.thumbnail && (
-                            <Image
-                              src={course.thumbnail}
-                              alt={course.title}
-                              width={40}
-                              height={40}
-                              className="rounded object-cover"
-                            />
-                          )}
-                          <div className="flex-1">
-                            <p className="font-medium">{course.title}</p>
-                            <p className="text-xs text-muted-foreground">
-                              Level: {course.level} | Price: ${course.price}
-                            </p>
+            {/* Course Selection with Search */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2%', width: '100%' }}>
+              <Label style={{ marginBottom: '1%' }}>
+                Select Course <span style={{ color: 'red' }}>*</span>
+              </Label>
+              <Popover open={courseOpen} onOpenChange={setCourseOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={courseOpen}
+                    style={{ 
+                      width: '100%', 
+                      justifyContent: 'space-between',
+                      padding: '2%'
+                    }}
+                  >
+                    {selectedCourse ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '2%' }}>
+                        {selectedCourse.thumbnail && (
+                          <Image
+                            src={selectedCourse.thumbnail}
+                            alt={selectedCourse.title}
+                            width={24}
+                            height={24}
+                            className="rounded"
+                          />
+                        )}
+                        <span>{selectedCourse.title}</span>
+                        <Badge variant="outline" style={{ marginLeft: '2%', fontSize: '70%' }}>
+                          {selectedCourse.level}
+                        </Badge>
+                      </div>
+                    ) : (
+                      "Select a course..."
+                    )}
+                    <Search style={{ marginLeft: '2%', height: '4%', width: '4%', opacity: 0.5 }} />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent style={{ width: '90%', padding: 0 }}>
+                  <Command>
+                    <CommandInput 
+                      placeholder="Search courses..." 
+                      onValueChange={setCourseSearch}
+                    />
+                    <CommandEmpty>
+                      {coursesLoading ? 'Loading...' : 'No courses found.'}
+                    </CommandEmpty>
+                    <CommandGroup style={{ maxHeight: '50%', overflow: 'auto' }}>
+                      {courses.map((course: any) => (
+                        <CommandItem
+                          key={course._id}
+                          value={course.title}
+                          onSelect={() => {
+                            setSelectedCourse(course)
+                            setCourseOpen(false)
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '2%', width: '100%' }}>
+                            {course.thumbnail && (
+                              <Image
+                                src={course.thumbnail}
+                                alt={course.title}
+                                width={40}
+                                height={40}
+                                className="rounded object-cover"
+                              />
+                            )}
+                            <div style={{ flex: 1 }}>
+                              <p style={{ fontWeight: '500' }}>{course.title}</p>
+                              <p style={{ fontSize: '70%', color: 'gray' }}>
+                                Level: {course.level} | Price: ${course.price}
+                              </p>
+                            </div>
+                            {selectedCourse?._id === course._id && (
+                              <Badge variant="default" style={{ marginLeft: '2%' }}>
+                                Selected
+                              </Badge>
+                            )}
                           </div>
-                          {selectedCourse?._id === course._id && (
-                            <Badge variant="default" className="ml-2">
-                              Selected
-                            </Badge>
-                          )}
-                        </div>
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </Command>
-              </PopoverContent>
-            </Popover>
-          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
 
-          {/* Issued Date */}
-          <div className="space-y-2">
-            <Label>Issued Date</Label>
-            <Input
-              type="date"
-              value={issuedDate}
-              onChange={(e) => setIssuedDate(e.target.value)}
-              className="w-full"
-            />
-          </div>
+            {/* Issued Date */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2%', width: '100%' }}>
+              <Label>Issued Date</Label>
+              <Input
+                type="date"
+                value={issuedDate}
+                onChange={(e) => setIssuedDate(e.target.value)}
+                style={{ width: '100%', padding: '2%' }}
+              />
+            </div>
 
-          <Separator />
+            <Separator style={{ margin: '3% 0' }} />
 
-          {/* Action Buttons */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <Button
-              onClick={() => handleGenerate(true)}
-              disabled={loading || !selectedStudent || !selectedCourse}
-              variant="outline"
-              className="w-full"
-            >
-              {loading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Download className="mr-2 h-4 w-4" />
-              )}
-              Download PDF
-            </Button>
+            {/* Action Buttons */}
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(3, 1fr)', 
+              gap: '2%',
+              width: '100%'
+            }}>
+              <Button
+                onClick={() => handleGenerate(true)}
+                disabled={loading || !selectedStudent || !selectedCourse}
+                variant="outline"
+                style={{ width: '100%', padding: '3%' }}
+              >
+                {loading ? (
+                  <Loader2 style={{ marginRight: '2%', height: '4%', width: '4%', animation: 'spin 1s linear infinite' }} />
+                ) : (
+                  <Download style={{ marginRight: '2%', height: '4%', width: '4%' }} />
+                )}
+                Download PDF
+              </Button>
 
-            <Button
-              onClick={handlePreview}
-              disabled={previewLoading || !selectedStudent || !selectedCourse}
-              variant="outline"
-              className="w-full"
-            >
-              {previewLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Eye className="mr-2 h-4 w-4" />
-              )}
-              Preview
-            </Button>
+              <Button
+                onClick={handlePreview}
+                disabled={previewLoading || !selectedStudent || !selectedCourse}
+                variant="outline"
+                style={{ width: '100%', padding: '3%' }}
+              >
+                {previewLoading ? (
+                  <Loader2 style={{ marginRight: '2%', height: '4%', width: '4%', animation: 'spin 1s linear infinite' }} />
+                ) : (
+                  <Eye style={{ marginRight: '2%', height: '4%', width: '4%' }} />
+                )}
+                Preview
+              </Button>
 
-            <Button
-              onClick={() => handleGenerate(false)}
-              disabled={loading || !selectedStudent || !selectedCourse}
-              className="w-full"
-            >
-              {loading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <FileText className="mr-2 h-4 w-4" />
-              )}
-              Generate & Store
-            </Button>
+              <Button
+                onClick={() => handleGenerate(false)}
+                disabled={loading || !selectedStudent || !selectedCourse}
+                style={{ width: '100%', padding: '3%' }}
+              >
+                {loading ? (
+                  <Loader2 style={{ marginRight: '2%', height: '4%', width: '4%', animation: 'spin 1s linear infinite' }} />
+                ) : (
+                  <FileText style={{ marginRight: '2%', height: '4%', width: '4%' }} />
+                )}
+                Generate & Store
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Preview Dialog */}
       <Dialog open={showPreview} onOpenChange={setShowPreview}>
-        <DialogContent className="max-w-4xl h-[80vh]">
-          <DialogHeader>
-            <DialogTitle>Certificate Preview</DialogTitle>
+        <DialogContent style={{ 
+          maxWidth: '90%', 
+          width: '90%',
+          height: '85vh',
+          padding: '0'
+        }}>
+          <DialogHeader style={{ padding: '3%' }}>
+            <DialogTitle style={{ fontSize: '1.5rem' }}>Certificate Preview</DialogTitle>
           </DialogHeader>
-          <div className="w-full h-full">
+          <div style={{ width: '100%', height: 'calc(100% - 20%)', padding: '2%' }}>
             {previewUrl && (
               <iframe
                 src={previewUrl}
-                className="w-full h-full rounded border"
+                style={{ width: '100%', height: '100%', borderRadius: '2%', border: '1px solid #ccc' }}
                 title="Certificate Preview"
               />
             )}
           </div>
-          <div className="flex justify-end gap-2">
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'flex-end', 
+            gap: '2%',
+            padding: '3%',
+            paddingTop: '1%'
+          }}>
             <Button
               variant="outline"
+              style={{ padding: '2% 4%' }}
               onClick={() => {
                 if (previewUrl) {
                   const a = document.createElement('a')
@@ -423,15 +454,30 @@ export default function CreateCertificate({ onSuccess }: CreateCertificateProps)
                 }
               }}
             >
-              <Download className="mr-2 h-4 w-4" />
+              <Download style={{ marginRight: '2%', height: '4%', width: '4%' }} />
               Download
             </Button>
-            <Button onClick={() => setShowPreview(false)}>
+            <Button 
+              onClick={() => setShowPreview(false)}
+              style={{ padding: '2% 4%' }}
+            >
               Close
             </Button>
           </div>
         </DialogContent>
       </Dialog>
-    </>
+
+      {/* Add keyframe animation for spinner */}
+      <style jsx global>{`
+        @keyframes spin {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+      `}</style>
+    </div>
   )
 }
