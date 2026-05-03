@@ -21,6 +21,7 @@ import {
 import POSTDATA from "@/app/default/functions/Post";
 import useFetchLessons from "@/app/default/custom-component/useFeatchLesson";
 import useFetchCourses from "@/app/default/custom-component/useFeatchCourse";
+import useFetchCourseSections from "@/app/default/custom-component/useCouesSection";
 
 interface Quiz {
   question: string;
@@ -36,6 +37,7 @@ export default function UploadVideo() {
   const [description, setDescription] = useState("");
   const [video, setVideo] = useState<File | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
+  const [sectionId, setSectionId] = useState<string>()
   const [quizzes, setQuizzes] = useState<Quiz[]>([
     { question: "", options: ["", "", "", ""], correctAnswer: "" },
   ]);
@@ -48,7 +50,7 @@ export default function UploadVideo() {
     error: coursesError,
   } = useFetchCourses({
     page: 1,
-    limit: 100,
+    limit: 1000,
     deleted: false,
     sortBy: "createdAt",
     sortOrder: -1,
@@ -61,14 +63,20 @@ export default function UploadVideo() {
     error: lessonsError,
     refetch: refetchLessons,
   } = useFetchLessons({
-    courseSection: selectedCourseId,
+    courseSection: sectionId,
     page: 1,
-    limit: 100,
+    limit: 1000,
     deleted: false,
     published: true,
     sortBy: "order",
     sortOrder: 1,
   });
+
+    const { courseSections } = useFetchCourseSections({
+      course: selectedCourseId,
+      published: true,
+      limit: 1000,
+    })
 
   // Show error toasts if any
   useEffect(() => {
@@ -280,13 +288,40 @@ export default function UploadVideo() {
             )}
           </div>
 
+          {/* SECTION */}
+                  <div className="space-y-1">
+                    <Label>Section</Label>
+                    <Select
+                      value={sectionId}
+                      onValueChange={(v) => setSectionId(v)}
+                      disabled={!selectedCourseId}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select section" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {courseSections.map((s:any) => (
+                          <SelectItem key={s._id} value={s._id}>
+                            {s.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+          
+                 
+
+
+
+
+
           {/* ---------------- LESSON SELECTION ---------------- */}
           <div className="space-y-2">
             <Label>Select Lesson *</Label>
             <Select
               value={selectedLessonId}
               onValueChange={setSelectedLessonId}
-              disabled={!selectedCourseId || loadingLessons}
+              disabled={!sectionId || loadingLessons}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Choose a lesson" />

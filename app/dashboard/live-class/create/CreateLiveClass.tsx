@@ -117,7 +117,7 @@ export default function CreateLiveClass() {
     try {
       setLoading(true)
 
-      const res = await POSTDATA('/v1/live-class', payload)
+      const res = await POSTDATA('/v1/live-class/create', payload)
 
       if (!res.success) throw new Error(res.message)
 

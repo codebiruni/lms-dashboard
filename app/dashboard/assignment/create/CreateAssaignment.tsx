@@ -44,18 +44,18 @@ export default function CreateAssignment() {
   const [loading, setLoading] = useState(false)
 
   /* -------------------- DATA -------------------- */
-  const { courses } = useFetchCourses({ limit: 100 })
+  const { courses } = useFetchCourses({ limit: 1000 })
 
   const { courseSections } = useFetchCourseSections({
     course: courseId,
     published: true,
-    limit: 100,
+    limit: 1000,
   })
 
   const { lessons } = useFetchLessons({
     courseSection: sectionId,
     published: true,
-    limit: 100,
+    limit: 1000,
   })
 
   /* -------------------- RESET DEPENDENCIES -------------------- */

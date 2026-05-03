@@ -227,4 +227,12 @@ export const adminNavItems = [
       { title: "Web Core", url: "/dashboard/system/web-core" },
     ],
   },
+  {
+    title: "Data Management",
+    url: "#",
+    icon: Settings2,
+    items: [
+      { title: "Landing Page Data", url: "/dashboard/page-form-data" }
+    ],
+  },
 ];
