@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 
 const LOGINUSER = async (path: string, data: any) => {
   
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${path}`, {
+  const res = await fetch(`https://lms-server-theta-lilac.vercel.app/api${path}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

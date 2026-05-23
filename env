@@ -1,0 +1,10 @@
+# NEXT_PUBLIC_API_URL=https://lms-server-ox1v.onrender.com/api
+NEXT_PUBLIC_API_URL=https://lms-server-theta-lilac.vercel.app/api
+# NEXT_PUBLIC_API_URL=http://localhost:5001/api
+
+NEXT_PUBLIC_CONVAY_URL=https://convay.com
+NEXT_PUBLIC_CONVAY_USERNAME=codebiruny@gmail.com
+NEXT_PUBLIC_CONVAY_PASSWORD=Codebiruni2015*
+
+
+
