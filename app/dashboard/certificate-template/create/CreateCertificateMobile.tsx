@@ -4,10 +4,9 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { 
     UploadCloud, Save, Loader2, X, Minus, Plus, 
-    Move, Trash2,
-    ArrowUp, ArrowDown, ArrowLeft, ArrowRight,
+    Move, Trash2, ArrowUp, ArrowDown, ArrowLeft, ArrowRight,
     Eye, EyeOff, Settings, Image as ImageIcon,
-    Copy, Grid, ZoomIn, ZoomOut
+    Copy, Grid, ZoomIn, ZoomOut, ChevronLeft, Lock, Unlock
 } from 'lucide-react'
 import { toast } from 'sonner'
 import Image from 'next/image'
@@ -29,25 +28,19 @@ import useFetchCourses from '@/app/default/custom-component/useFeatchCourse'
 export interface ICreateCertificate {
     image: string;
     studentIdPosition: {
-        left?: number;
-        top?: number;
-        fontSize?: number;
-        width?: number;
-        height?: number;
+        left?: number;      // Percentage 0-100
+        top?: number;       // Percentage 0-100
+        fontSize?: number;  // Pixels
     }
     namePosition: {
-        left?: number;
-        top?: number;
-        fontSize?: number;
-        width?: number;
-        height?: number;
+        left?: number;      // Percentage 0-100
+        top?: number;       // Percentage 0-100
+        fontSize?: number;  // Pixels
     }
     courseNamePosition: {
-        left?: number;
-        top?: number;
-        fontSize?: number;
-        width?: number;
-        height?: number;
+        left?: number;      // Percentage 0-100
+        top?: number;       // Percentage 0-100
+        fontSize?: number;  // Pixels
     }
     fontFamily?: string;
     color?: string;
@@ -56,7 +49,6 @@ export interface ICreateCertificate {
 }
 
 type DraggableElement = 'studentId' | 'name' | 'courseName' | null
-type ResizeHandle = 'nw' | 'ne' | 'sw' | 'se' | null
 
 export default function CreateCertificateMobile() {
     // Courses data
@@ -76,19 +68,17 @@ export default function CreateCertificateMobile() {
     // Image state
     const [image, setImage] = useState<File | null>(null)
     const [imagePreview, setImagePreview] = useState<string | null>(null)
+    const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 })
 
-    // Position states for draggable elements with sizes
-    const [studentIdPos, setStudentIdPos] = useState({ left: 200, top: 200, fontSize: 18, width: 100, height: 30 })
-    const [namePos, setNamePos] = useState({ left: 200, top: 300, fontSize: 24, width: 160, height: 40 })
-    const [courseNamePos, setCourseNamePos] = useState({ left: 200, top: 400, fontSize: 20, width: 200, height: 35 })
+    // Position states - USING PERCENTAGES (0-100) for backend compatibility
+    const [studentIdPos, setStudentIdPos] = useState({ left: 50, top: 30, fontSize: 18 })
+    const [namePos, setNamePos] = useState({ left: 50, top: 45, fontSize: 24 })
+    const [courseNamePos, setCourseNamePos] = useState({ left: 50, top: 60, fontSize: 20 })
 
     // Active element for dragging and editing
     const [activeElement, setActiveElement] = useState<DraggableElement>(null)
     const [isDragging, setIsDragging] = useState(false)
-    const [isResizing, setIsResizing] = useState(false)
-    const [resizeHandle, setResizeHandle] = useState<ResizeHandle>(null)
     const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
-    const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 })
 
     // UI state
     const [showGrid, setShowGrid] = useState(true)
@@ -103,11 +93,7 @@ export default function CreateCertificateMobile() {
     // Canvas ref for positioning calculations
     const canvasRef = useRef<HTMLDivElement>(null)
     const canvasContainerRef = useRef<HTMLDivElement>(null)
-    const elementRefs = {
-        studentId: useRef<HTMLDivElement>(null),
-        name: useRef<HTMLDivElement>(null),
-        courseName: useRef<HTMLDivElement>(null)
-    }
+    const touchStartRef = useRef<{ x: number; y: number; left: number; top: number } | null>(null)
 
     // Font options
     const fontOptions = [
@@ -117,12 +103,45 @@ export default function CreateCertificateMobile() {
         'Open Sans', 'Lato', 'Montserrat', 'Poppins'
     ]
 
-    // Handle image upload
+    // Get current dimensions of canvas
+    const getCanvasDimensions = () => {
+        if (!canvasRef.current) return { width: 0, height: 0 }
+        const rect = canvasRef.current.getBoundingClientRect()
+        return { width: rect.width, height: rect.height }
+    }
+
+    // Convert percentage to pixels for positioning
+    const getPixelPosition = (percentLeft: number, percentTop: number) => {
+        const { width, height } = getCanvasDimensions()
+        return {
+            left: (percentLeft / 100) * width,
+            top: (percentTop / 100) * height
+        }
+    }
+
+    // Convert pixel position to percentage
+    const getPercentagePosition = (pixelLeft: number, pixelTop: number) => {
+        const { width, height } = getCanvasDimensions()
+        return {
+            left: width > 0 ? Math.max(0, Math.min(100, (pixelLeft / width) * 100)) : 50,
+            top: height > 0 ? Math.max(0, Math.min(100, (pixelTop / height) * 100)) : 50
+        }
+    }
+
+    // Handle image upload and get dimensions
     const handleImageUpload = (file: File) => {
         setImage(file)
         const reader = new FileReader()
         reader.onloadend = () => {
-            setImagePreview(reader.result as string)
+            const imgUrl = reader.result as string
+            setImagePreview(imgUrl)
+            
+            // Get image dimensions
+            const img = new window.Image()
+            img.onload = () => {
+                setImageDimensions({ width: img.width, height: img.height })
+            }
+            img.src = imgUrl
         }
         reader.readAsDataURL(file)
     }
@@ -134,13 +153,91 @@ export default function CreateCertificateMobile() {
         }
     }
 
-    // Drag handlers
+    // Touch handlers for mobile
+    const handleTouchStart = (e: React.TouchEvent, element: DraggableElement) => {
+        e.preventDefault()
+        if (!canvasRef.current || !element) return
+
+        const layer = layers.find(l => l.id === element)
+        if (layer?.locked) {
+            toast.error('This element is locked')
+            return
+        }
+
+        const touch = e.touches[0]
+        const canvasRect = canvasRef.current.getBoundingClientRect()
+        let currentPos
+
+        switch (element) {
+            case 'studentId':
+                currentPos = studentIdPos
+                break
+            case 'name':
+                currentPos = namePos
+                break
+            case 'courseName':
+                currentPos = courseNamePos
+                break
+            default:
+                return
+        }
+
+        const pixelPos = getPixelPosition(currentPos.left, currentPos.top)
+        
+        setActiveElement(element)
+        setIsDragging(true)
+        touchStartRef.current = {
+            x: touch.clientX,
+            y: touch.clientY,
+            left: pixelPos.left,
+            top: pixelPos.top
+        }
+    }
+
+    const handleTouchMove = (e: TouchEvent) => {
+        if (!canvasRef.current || !isDragging || !activeElement || !touchStartRef.current) return
+
+        e.preventDefault()
+        const touch = e.touches[0]
+        const canvasRect = canvasRef.current.getBoundingClientRect()
+        
+        const deltaX = touch.clientX - touchStartRef.current.x
+        const deltaY = touch.clientY - touchStartRef.current.y
+        
+        let newPixelLeft = touchStartRef.current.left + deltaX
+        let newPixelTop = touchStartRef.current.top + deltaY
+        
+        // Constrain to canvas bounds
+        newPixelLeft = Math.max(0, Math.min(newPixelLeft, canvasRect.width))
+        newPixelTop = Math.max(0, Math.min(newPixelTop, canvasRect.height))
+        
+        // Convert to percentage
+        const newPercentage = getPercentagePosition(newPixelLeft, newPixelTop)
+
+        switch (activeElement) {
+            case 'studentId':
+                setStudentIdPos(prev => ({ ...prev, left: newPercentage.left, top: newPercentage.top }))
+                break
+            case 'name':
+                setNamePos(prev => ({ ...prev, left: newPercentage.left, top: newPercentage.top }))
+                break
+            case 'courseName':
+                setCourseNamePos(prev => ({ ...prev, left: newPercentage.left, top: newPercentage.top }))
+                break
+        }
+    }
+
+    const handleTouchEnd = () => {
+        setIsDragging(false)
+        touchStartRef.current = null
+    }
+
+    // Mouse handlers (for development with mouse)
     const handleMouseDown = (e: React.MouseEvent, element: DraggableElement) => {
         e.preventDefault()
         e.stopPropagation()
-        if (!canvasRef.current || !element || isResizing) return
+        if (!canvasRef.current || !element) return
 
-        // Check if element is locked
         const layer = layers.find(l => l.id === element)
         if (layer?.locked) {
             toast.error('This element is locked')
@@ -160,131 +257,86 @@ export default function CreateCertificateMobile() {
             case 'courseName':
                 currentPos = courseNamePos
                 break
+            default:
+                return
         }
 
+        const pixelPos = getPixelPosition(currentPos.left, currentPos.top)
+        
         setActiveElement(element)
         setIsDragging(true)
         setDragOffset({
-            x: e.clientX - canvasRect.left - currentPos.left,
-            y: e.clientY - canvasRect.top - currentPos.top,
-        })
-    }
-
-    // Resize handlers
-    const handleResizeStart = (e: React.MouseEvent, element: DraggableElement, handle: ResizeHandle) => {
-        e.preventDefault()
-        e.stopPropagation()
-        if (!element || !handle) return
-
-        // Check if element is locked
-        const layer = layers.find(l => l.id === element)
-        if (layer?.locked) {
-            toast.error('This element is locked')
-            return
-        }
-
-        let currentPos
-        switch (element) {
-            case 'studentId':
-                currentPos = studentIdPos
-                break
-            case 'name':
-                currentPos = namePos
-                break
-            case 'courseName':
-                currentPos = courseNamePos
-                break
-        }
-
-        setActiveElement(element)
-        setIsResizing(true)
-        setResizeHandle(handle)
-        setResizeStart({
-            x: e.clientX,
-            y: e.clientY,
-            width: currentPos.width || 100,
-            height: currentPos.height || 40
+            x: e.clientX - canvasRect.left - pixelPos.left,
+            y: e.clientY - canvasRect.top - pixelPos.top,
         })
     }
 
     useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
-            if (!canvasRef.current) return
+            if (!canvasRef.current || !isDragging || !activeElement) return
 
-            if (isDragging && activeElement) {
-                // Handle dragging
-                const canvasRect = canvasRef.current.getBoundingClientRect()
-                const newLeft = Math.max(0, Math.min(e.clientX - canvasRect.left - dragOffset.x, canvasRect.width))
-                const newTop = Math.max(0, Math.min(e.clientY - canvasRect.top - dragOffset.y, canvasRect.height))
+            const canvasRect = canvasRef.current.getBoundingClientRect()
+            let currentPos
 
-                switch (activeElement) {
-                    case 'studentId':
-                        setStudentIdPos(prev => ({ ...prev, left: newLeft, top: newTop }))
-                        break
-                    case 'name':
-                        setNamePos(prev => ({ ...prev, left: newLeft, top: newTop }))
-                        break
-                    case 'courseName':
-                        setCourseNamePos(prev => ({ ...prev, left: newLeft, top: newTop }))
-                        break
-                }
-            } else if (isResizing && activeElement && resizeHandle) {
-                // Handle resizing
-                const deltaX = e.clientX - resizeStart.x
-                const deltaY = e.clientY - resizeStart.y
-                
-                let newWidth = resizeStart.width
-                let newHeight = resizeStart.height
+            switch (activeElement) {
+                case 'studentId':
+                    currentPos = studentIdPos
+                    break
+                case 'name':
+                    currentPos = namePos
+                    break
+                case 'courseName':
+                    currentPos = courseNamePos
+                    break
+                default:
+                    return
+            }
 
-                switch (resizeHandle) {
-                    case 'se': // Bottom-right
-                        newWidth = Math.max(50, resizeStart.width + deltaX)
-                        newHeight = Math.max(30, resizeStart.height + deltaY)
-                        break
-                    case 'sw': // Bottom-left
-                        newWidth = Math.max(50, resizeStart.width - deltaX)
-                        newHeight = Math.max(30, resizeStart.height + deltaY)
-                        break
-                    case 'ne': // Top-right
-                        newWidth = Math.max(50, resizeStart.width + deltaX)
-                        newHeight = Math.max(30, resizeStart.height - deltaY)
-                        break
-                    case 'nw': // Top-left
-                        newWidth = Math.max(50, resizeStart.width - deltaX)
-                        newHeight = Math.max(30, resizeStart.height - deltaY)
-                        break
-                }
+            const pixelPos = getPixelPosition(currentPos.left, currentPos.top)
+            
+            let newPixelLeft = e.clientX - canvasRect.left - dragOffset.x
+            let newPixelTop = e.clientY - canvasRect.top - dragOffset.y
+            
+            newPixelLeft = Math.max(0, Math.min(newPixelLeft, canvasRect.width))
+            newPixelTop = Math.max(0, Math.min(newPixelTop, canvasRect.height))
+            
+            const newPercentage = getPercentagePosition(newPixelLeft, newPixelTop)
 
-                switch (activeElement) {
-                    case 'studentId':
-                        setStudentIdPos(prev => ({ ...prev, width: newWidth, height: newHeight }))
-                        break
-                    case 'name':
-                        setNamePos(prev => ({ ...prev, width: newWidth, height: newHeight }))
-                        break
-                    case 'courseName':
-                        setCourseNamePos(prev => ({ ...prev, width: newWidth, height: newHeight }))
-                        break
-                }
+            switch (activeElement) {
+                case 'studentId':
+                    setStudentIdPos(prev => ({ ...prev, left: newPercentage.left, top: newPercentage.top }))
+                    break
+                case 'name':
+                    setNamePos(prev => ({ ...prev, left: newPercentage.left, top: newPercentage.top }))
+                    break
+                case 'courseName':
+                    setCourseNamePos(prev => ({ ...prev, left: newPercentage.left, top: newPercentage.top }))
+                    break
             }
         }
 
         const handleMouseUp = () => {
             setIsDragging(false)
-            setIsResizing(false)
-            setResizeHandle(null)
         }
 
-        if (isDragging || isResizing) {
+        // Touch event listeners
+        const handleGlobalTouchMove = (e: TouchEvent) => handleTouchMove(e)
+        const handleGlobalTouchEnd = () => handleTouchEnd()
+
+        if (isDragging) {
             document.addEventListener('mousemove', handleMouseMove)
             document.addEventListener('mouseup', handleMouseUp)
+            document.addEventListener('touchmove', handleGlobalTouchMove, { passive: false })
+            document.addEventListener('touchend', handleGlobalTouchEnd)
         }
 
         return () => {
             document.removeEventListener('mousemove', handleMouseMove)
             document.removeEventListener('mouseup', handleMouseUp)
+            document.removeEventListener('touchmove', handleGlobalTouchMove)
+            document.removeEventListener('touchend', handleGlobalTouchEnd)
         }
-    }, [isDragging, isResizing, activeElement, dragOffset, resizeHandle, resizeStart])
+    }, [isDragging, activeElement, dragOffset])
 
     // Handle element selection
     const selectElement = (element: DraggableElement) => {
@@ -306,22 +358,22 @@ export default function CreateCertificateMobile() {
         }
     }
 
-    // Update dimensions for active element
-    const updateDimensions = (type: 'width' | 'height', value: number) => {
+    // Update position for active element
+    const updatePosition = (axis: 'left' | 'top', value: number) => {
         switch (activeElement) {
             case 'studentId':
-                setStudentIdPos(prev => ({ ...prev, [type]: value }))
+                setStudentIdPos(prev => ({ ...prev, [axis]: Math.max(0, Math.min(100, value)) }))
                 break
             case 'name':
-                setNamePos(prev => ({ ...prev, [type]: value }))
+                setNamePos(prev => ({ ...prev, [axis]: Math.max(0, Math.min(100, value)) }))
                 break
             case 'courseName':
-                setCourseNamePos(prev => ({ ...prev, [type]: value }))
+                setCourseNamePos(prev => ({ ...prev, [axis]: Math.max(0, Math.min(100, value)) }))
                 break
         }
     }
 
-    // Get active element styles
+    // Get active element font size
     const getActiveFontSize = () => {
         switch (activeElement) {
             case 'studentId':
@@ -335,48 +387,42 @@ export default function CreateCertificateMobile() {
         }
     }
 
-    const getActiveDimensions = () => {
+    // Get active element position
+    const getActivePosition = () => {
         switch (activeElement) {
             case 'studentId':
-                return { width: studentIdPos.width || 120, height: studentIdPos.height || 40 }
+                return { left: studentIdPos.left, top: studentIdPos.top }
             case 'name':
-                return { width: namePos.width || 200, height: namePos.height || 50 }
+                return { left: namePos.left, top: namePos.top }
             case 'courseName':
-                return { width: courseNamePos.width || 250, height: courseNamePos.height || 45 }
+                return { left: courseNamePos.left, top: courseNamePos.top }
             default:
-                return { width: 100, height: 40 }
+                return { left: 50, top: 50 }
         }
     }
 
-    // Nudge position by arrow keys
+    // Nudge position by percentage points
     const nudgePosition = (direction: 'left' | 'right' | 'up' | 'down') => {
         if (!activeElement) {
-            toast.error('Please select an element first')
+            toast.error('Select an element first')
             return
         }
 
-        const step = 5
-        switch (activeElement) {
-            case 'studentId':
-                setStudentIdPos(prev => ({
-                    ...prev,
-                    left: direction === 'left' ? prev.left - step : direction === 'right' ? prev.left + step : prev.left,
-                    top: direction === 'up' ? prev.top - step : direction === 'down' ? prev.top + step : prev.top
-                }))
+        const step = 2 // 2% step for mobile
+        const currentPos = getActivePosition()
+
+        switch (direction) {
+            case 'left':
+                updatePosition('left', currentPos.left - step)
                 break
-            case 'name':
-                setNamePos(prev => ({
-                    ...prev,
-                    left: direction === 'left' ? prev.left - step : direction === 'right' ? prev.left + step : prev.left,
-                    top: direction === 'up' ? prev.top - step : direction === 'down' ? prev.top + step : prev.top
-                }))
+            case 'right':
+                updatePosition('left', currentPos.left + step)
                 break
-            case 'courseName':
-                setCourseNamePos(prev => ({
-                    ...prev,
-                    left: direction === 'left' ? prev.left - step : direction === 'right' ? prev.left + step : prev.left,
-                    top: direction === 'up' ? prev.top - step : direction === 'down' ? prev.top + step : prev.top
-                }))
+            case 'up':
+                updatePosition('top', currentPos.top - step)
+                break
+            case 'down':
+                updatePosition('top', currentPos.top + step)
                 break
         }
     }
@@ -395,17 +441,15 @@ export default function CreateCertificateMobile() {
         ))
     }
 
-    // Duplicate element
+    // Duplicate element (coming soon)
     const duplicateElement = () => {
         if (!activeElement) return
-        
         toast.info('Duplicate feature coming soon')
     }
 
-    // Delete element
+    // Delete element (coming soon)
     const deleteElement = () => {
         if (!activeElement) return
-        
         toast.info('Delete feature coming soon')
     }
 
@@ -426,38 +470,30 @@ export default function CreateCertificateMobile() {
 
             const formData = new FormData()
             
-            // Append each field individually
             formData.append('course', selectedCourse)
             formData.append('fontFamily', fontFamily)
             formData.append('color', textColor)
             formData.append('isDelete', String(isDelete))
             
-            // Append position data as JSON strings
+            // Append position data as percentages - NO width/height
             formData.append('studentIdPosition', JSON.stringify({
                 left: studentIdPos.left,
                 top: studentIdPos.top,
-                fontSize: studentIdPos.fontSize,
-                width: studentIdPos.width,
-                height: studentIdPos.height
+                fontSize: studentIdPos.fontSize
             }))
             
             formData.append('namePosition', JSON.stringify({
                 left: namePos.left,
                 top: namePos.top,
-                fontSize: namePos.fontSize,
-                width: namePos.width,
-                height: namePos.height
+                fontSize: namePos.fontSize
             }))
             
             formData.append('courseNamePosition', JSON.stringify({
                 left: courseNamePos.left,
                 top: courseNamePos.top,
-                fontSize: courseNamePos.fontSize,
-                width: courseNamePos.width,
-                height: courseNamePos.height
+                fontSize: courseNamePos.fontSize
             }))
 
-            // Append the image
             formData.append('image', image)
 
             const res = await POSTDATA('/v1/certificate-template', formData)
@@ -475,9 +511,10 @@ export default function CreateCertificateMobile() {
             setIsDelete(false)
             setImage(null)
             setImagePreview(null)
-            setStudentIdPos({ left: 200, top: 200, fontSize: 18, width: 100, height: 30 })
-            setNamePos({ left: 200, top: 300, fontSize: 24, width: 160, height: 40 })
-            setCourseNamePos({ left: 200, top: 400, fontSize: 20, width: 200, height: 35 })
+            setImageDimensions({ width: 0, height: 0 })
+            setStudentIdPos({ left: 50, top: 30, fontSize: 18 })
+            setNamePos({ left: 50, top: 45, fontSize: 24 })
+            setCourseNamePos({ left: 50, top: 60, fontSize: 20 })
             setActiveElement(null)
 
         } catch (error: any) {
@@ -487,49 +524,38 @@ export default function CreateCertificateMobile() {
         }
     }
 
-    // Resize handle component
-    const ResizeHandles = ({ element }: { element: DraggableElement }) => {
-        if (activeElement !== element) return null
+    // Get style for an element (converts percentage to pixel for display)
+    const getElementStyle = (pos: { left: number; top: number; fontSize: number }) => {
+        const { left, top } = getPixelPosition(pos.left, pos.top)
+        return {
+            left,
+            top,
+            fontSize: `${pos.fontSize}px`,
+            transform: 'translate(-50%, -50%)',
+        }
+    }
 
-        return (
-            <>
-                {/* Top-left handle */}
-                <div
-                    className="absolute w-5 h-5 bg-primary border-2 border-white rounded full shadow-lg cursor-nw-resize"
-                    style={{ left: -8, top: -8 }}
-                    onMouseDown={(e) => handleResizeStart(e, element, 'nw')}
-                />
-                {/* Top-right handle */}
-                <div
-                    className="absolute w-5 h-5 bg-primary border-2 border-white rounded full shadow-lg cursor-ne-resize"
-                    style={{ right: -8, top: -8 }}
-                    onMouseDown={(e) => handleResizeStart(e, element, 'ne')}
-                />
-                {/* Bottom-left handle */}
-                <div
-                    className="absolute w-5 h-5 bg-primary border-2 border-white rounded full shadow-lg cursor-sw-resize"
-                    style={{ left: -8, bottom: -8 }}
-                    onMouseDown={(e) => handleResizeStart(e, element, 'sw')}
-                />
-                {/* Bottom-right handle */}
-                <div
-                    className="absolute w-5 h-5 bg-primary border-2 border-white rounded full shadow-lg cursor-se-resize"
-                    style={{ right: -8, bottom: -8 }}
-                    onMouseDown={(e) => handleResizeStart(e, element, 'se')}
-                />
-            </>
-        )
+    // Handle back button
+    const handleBack = () => {
+        if (typeof window !== 'undefined') {
+            window.history.back()
+        }
     }
 
     return (
         <div className="h-screen flex flex-col bg-background sm:hidden">
-            {/* Header - PixelLab style */}
+            {/* Header - Mobile friendly */}
             <div className="bg-primary text-primary-foreground p-3 flex items-center justify-between shadow-md">
                 <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-primary/90">
-                        <ArrowLeft className="h-5 w-5" />
+                    <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="text-primary-foreground hover:bg-primary/90"
+                        onClick={handleBack}
+                    >
+                        <ChevronLeft className="h-5 w-5" />
                     </Button>
-                    <h1 className="font-bold text-lg">Certificate Designer</h1>
+                    <h1 className="font-bold text-base">Certificate Designer</h1>
                 </div>
                 <div className="flex items-center gap-1">
                     <Button 
@@ -564,7 +590,7 @@ export default function CreateCertificateMobile() {
             {/* Canvas Area - Main workspace */}
             <div 
                 ref={canvasContainerRef}
-                className="flex-1 overflow-auto bg-muted/30 p-4 relative"
+                className="flex-1 overflow-auto bg-muted/30 p-3 relative"
                 style={{
                     backgroundImage: showGrid ? 'radial-gradient(circle at 10px 10px, rgba(0,0,0,0.05) 1px, transparent 1px)' : 'none',
                     backgroundSize: '20px 20px'
@@ -580,7 +606,8 @@ export default function CreateCertificateMobile() {
                 >
                     <div
                         ref={canvasRef}
-                        className="relative w-full aspect-[1.414/1] bg-white rounded lg shadow-xl overflow-hidden border-2 border-border"
+                        className="relative w-full bg-white rounded-lg shadow-xl overflow-hidden border border-border"
+                        style={{ aspectRatio: '1.414/1' }}
                     >
                         {imagePreview && (
                             // eslint-disable-next-line @next/next/no-img-element
@@ -588,116 +615,120 @@ export default function CreateCertificateMobile() {
                                 src={imagePreview}
                                 alt="Certificate Background"
                                 className="absolute inset-0 w-full h-full object-contain"
+                                draggable={false}
                             />
                         )}
 
-                        {/* Draggable and Resizable Elements */}
+                        {/* Draggable Elements */}
                         <div className="relative w-full h-full">
-                            {/* Student ID - only show if visible */}
+                            {/* Student ID */}
                             {layers.find(l => l.id === 'studentId')?.visible && (
                                 <div
-                                    ref={elementRefs.studentId}
                                     className={`absolute ${activeElement === 'studentId' ? 'ring-2 ring-primary' : 'hover:ring-1 hover:ring-primary/50'
-                                        } ${layers.find(l => l.id === 'studentId')?.locked ? 'opacity-50' : ''}`}
+                                        } ${layers.find(l => l.id === 'studentId')?.locked ? 'opacity-50' : 'cursor-grab active:cursor-grabbing'}`}
                                     style={{
-                                        left: studentIdPos.left,
-                                        top: studentIdPos.top,
-                                        transform: 'translate(-50%, -50%)',
-                                        width: studentIdPos.width,
-                                        height: studentIdPos.height,
-                                        cursor: layers.find(l => l.id === 'studentId')?.locked ? 'not-allowed' : (isDragging && activeElement === 'studentId' ? 'grabbing' : 'grab'),
+                                        ...getElementStyle(studentIdPos),
                                         userSelect: 'none',
+                                        touchAction: 'none'
                                     }}
                                     onMouseDown={(e) => !layers.find(l => l.id === 'studentId')?.locked && handleMouseDown(e, 'studentId')}
+                                    onTouchStart={(e) => !layers.find(l => l.id === 'studentId')?.locked && handleTouchStart(e, 'studentId')}
                                     onClick={() => !layers.find(l => l.id === 'studentId')?.locked && selectElement('studentId')}
                                 >
-                                    <div className="w-full h-full flex items-center justify-center p-1 bg-white/10 backdrop-blur-sm rounded border border-dashed border-primary/30"
-                                        style={{
-                                            fontSize: studentIdPos.fontSize,
-                                            color: textColor,
-                                            fontFamily,
-                                            textShadow: '0 0 5px rgba(255,255,255,0.8)'
-                                        }}>
-                                        <div className="flex items-center gap-1">
-                                            <Badge variant="secondary" className="text-[8px] py-0 h-3 px-1">ID</Badge>
-                                            <span className="truncate text-xs">STU-12345</span>
-                                        </div>
+                                    <div className="flex items-center gap-1 p-1.5 bg-white/10 backdrop-blur-sm rounded border border-dashed border-primary/30">
+                                        <Badge variant="secondary" className="text-[8px] py-0 h-3.5 px-1">ID</Badge>
+                                        <span 
+                                            className="truncate text-xs"
+                                            style={{
+                                                fontSize: studentIdPos.fontSize,
+                                                color: textColor,
+                                                fontFamily,
+                                                textShadow: '0 0 5px rgba(255,255,255,0.8)'
+                                            }}
+                                        >
+                                            STU-12345
+                                        </span>
                                     </div>
-                                    {!layers.find(l => l.id === 'studentId')?.locked && <ResizeHandles element="studentId" />}
                                 </div>
                             )}
 
-                            {/* Student Name - only show if visible */}
+                            {/* Student Name */}
                             {layers.find(l => l.id === 'name')?.visible && (
                                 <div
-                                    ref={elementRefs.name}
                                     className={`absolute ${activeElement === 'name' ? 'ring-2 ring-primary' : 'hover:ring-1 hover:ring-primary/50'
-                                        } ${layers.find(l => l.id === 'name')?.locked ? 'opacity-50' : ''}`}
+                                        } ${layers.find(l => l.id === 'name')?.locked ? 'opacity-50' : 'cursor-grab active:cursor-grabbing'}`}
                                     style={{
-                                        left: namePos.left,
-                                        top: namePos.top,
-                                        transform: 'translate(-50%, -50%)',
-                                        width: namePos.width,
-                                        height: namePos.height,
-                                        cursor: layers.find(l => l.id === 'name')?.locked ? 'not-allowed' : (isDragging && activeElement === 'name' ? 'grabbing' : 'grab'),
+                                        ...getElementStyle(namePos),
                                         userSelect: 'none',
+                                        touchAction: 'none'
                                     }}
                                     onMouseDown={(e) => !layers.find(l => l.id === 'name')?.locked && handleMouseDown(e, 'name')}
+                                    onTouchStart={(e) => !layers.find(l => l.id === 'name')?.locked && handleTouchStart(e, 'name')}
                                     onClick={() => !layers.find(l => l.id === 'name')?.locked && selectElement('name')}
                                 >
-                                    <div className="w-full h-full flex items-center justify-center p-1 bg-white/10 backdrop-blur-sm rounded border border-dashed border-primary/30"
-                                        style={{
-                                            fontSize: namePos.fontSize,
-                                            color: textColor,
-                                            fontFamily,
-                                            textShadow: '0 0 5px rgba(255,255,255,0.8)'
-                                        }}>
-                                        <div className="flex items-center gap-1">
-                                            <Badge variant="secondary" className="text-[8px] py-0 h-3 px-1">Name</Badge>
-                                            <span className="truncate text-xs">John Doe</span>
-                                        </div>
+                                    <div className="flex items-center gap-1 p-1.5 bg-white/10 backdrop-blur-sm rounded border border-dashed border-primary/30">
+                                        <Badge variant="secondary" className="text-[8px] py-0 h-3.5 px-1">Name</Badge>
+                                        <span 
+                                            className="truncate text-xs"
+                                            style={{
+                                                fontSize: namePos.fontSize,
+                                                color: textColor,
+                                                fontFamily,
+                                                textShadow: '0 0 5px rgba(255,255,255,0.8)'
+                                            }}
+                                        >
+                                            John Doe
+                                        </span>
                                     </div>
-                                    {!layers.find(l => l.id === 'name')?.locked && <ResizeHandles element="name" />}
                                 </div>
                             )}
 
-                            {/* Course Name - only show if visible */}
+                            {/* Course Name */}
                             {layers.find(l => l.id === 'courseName')?.visible && (
                                 <div
-                                    ref={elementRefs.courseName}
                                     className={`absolute ${activeElement === 'courseName' ? 'ring-2 ring-primary' : 'hover:ring-1 hover:ring-primary/50'
-                                        } ${layers.find(l => l.id === 'courseName')?.locked ? 'opacity-50' : ''}`}
+                                        } ${layers.find(l => l.id === 'courseName')?.locked ? 'opacity-50' : 'cursor-grab active:cursor-grabbing'}`}
                                     style={{
-                                        left: courseNamePos.left,
-                                        top: courseNamePos.top,
-                                        transform: 'translate(-50%, -50%)',
-                                        width: courseNamePos.width,
-                                        height: courseNamePos.height,
-                                        cursor: layers.find(l => l.id === 'courseName')?.locked ? 'not-allowed' : (isDragging && activeElement === 'courseName' ? 'grabbing' : 'grab'),
+                                        ...getElementStyle(courseNamePos),
                                         userSelect: 'none',
+                                        touchAction: 'none'
                                     }}
                                     onMouseDown={(e) => !layers.find(l => l.id === 'courseName')?.locked && handleMouseDown(e, 'courseName')}
+                                    onTouchStart={(e) => !layers.find(l => l.id === 'courseName')?.locked && handleTouchStart(e, 'courseName')}
                                     onClick={() => !layers.find(l => l.id === 'courseName')?.locked && selectElement('courseName')}
                                 >
-                                    <div className="w-full h-full flex items-center justify-center p-1 bg-white/10 backdrop-blur-sm rounded border border-dashed border-primary/30"
-                                        style={{
-                                            fontSize: courseNamePos.fontSize,
-                                            color: textColor,
-                                            fontFamily,
-                                            textShadow: '0 0 5px rgba(255,255,255,0.8)'
-                                        }}>
-                                        <div className="flex items-center gap-1">
-                                            <Badge variant="secondary" className="text-[8px] py-0 h-3 px-1">Course</Badge>
-                                            <span className="truncate text-xs">Web Development</span>
-                                        </div>
+                                    <div className="flex items-center gap-1 p-1.5 bg-white/10 backdrop-blur-sm rounded border border-dashed border-primary/30">
+                                        <Badge variant="secondary" className="text-[8px] py-0 h-3.5 px-1">Course</Badge>
+                                        <span 
+                                            className="truncate text-xs"
+                                            style={{
+                                                fontSize: courseNamePos.fontSize,
+                                                color: textColor,
+                                                fontFamily,
+                                                textShadow: '0 0 5px rgba(255,255,255,0.8)'
+                                            }}
+                                        >
+                                            Web Development
+                                        </span>
                                     </div>
-                                    {!layers.find(l => l.id === 'courseName')?.locked && <ResizeHandles element="courseName" />}
                                 </div>
                             )}
                         </div>
 
                         {!imagePreview && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-muted/20">
+                            <div 
+                                className="absolute inset-0 flex items-center justify-center bg-muted/20 cursor-pointer"
+                                onClick={() => {
+                                    const input = document.createElement('input')
+                                    input.type = 'file'
+                                    input.accept = '.jpg,.jpeg,.png,.webp'
+                                    input.onchange = (e) => {
+                                        const file = (e.target as HTMLInputElement).files?.[0]
+                                        if (file) handleImageUpload(file)
+                                    }
+                                    input.click()
+                                }}
+                            >
                                 <div className="text-center p-4">
                                     <ImageIcon className="mx-auto h-12 w-12 text-muted-foreground mb-2" />
                                     <p className="text-sm text-muted-foreground">Tap to upload background</p>
@@ -708,27 +739,27 @@ export default function CreateCertificateMobile() {
                 </div>
             </div>
 
-            {/* Bottom Toolbar - PixelLab style */}
-            <div className="bg-card border-t border-border p-2">
+            {/* Bottom Toolbar - Mobile optimized */}
+            <div className="bg-card border-t border-border">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <TabsList className="grid grid-cols-4 mb-2">
-                        <TabsTrigger value="elements" className="text-xs py-1.5">Elements</TabsTrigger>
-                        <TabsTrigger value="style" className="text-xs py-1.5">Style</TabsTrigger>
-                        <TabsTrigger value="layers" className="text-xs py-1.5">Layers</TabsTrigger>
-                        <TabsTrigger value="export" className="text-xs py-1.5">Export</TabsTrigger>
+                    <TabsList className="grid grid-cols-4 rounded-none h-12">
+                        <TabsTrigger value="elements" className="text-xs py-2">Elements</TabsTrigger>
+                        <TabsTrigger value="style" className="text-xs py-2">Style</TabsTrigger>
+                        <TabsTrigger value="layers" className="text-xs py-2">Layers</TabsTrigger>
+                        <TabsTrigger value="export" className="text-xs py-2">Export</TabsTrigger>
                     </TabsList>
 
                     {/* Elements Tab */}
-                    <TabsContent value="elements" className="mt-0">
-                        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                    <TabsContent value="elements" className="mt-0 p-3 max-h-[45vh] overflow-y-auto">
+                        <div className="flex flex-wrap gap-2 mb-3">
                             <Sheet>
                                 <SheetTrigger asChild>
                                     <Button variant="outline" size="sm" className="shrink-0">
                                         <ImageIcon className="h-4 w-4 mr-1" />
-                                        BG
+                                        Background
                                     </Button>
                                 </SheetTrigger>
-                                <SheetContent side="bottom" className="h-[80vh] rounded t-xl">
+                                <SheetContent side="bottom" className="h-[80vh] rounded-t-xl">
                                     <SheetHeader>
                                         <SheetTitle>Background Image</SheetTitle>
                                     </SheetHeader>
@@ -736,7 +767,7 @@ export default function CreateCertificateMobile() {
                                         <div
                                             onDragOver={(e) => e.preventDefault()}
                                             onDrop={handleDrop}
-                                            className="relative h-40 cursor-pointer rounded lg border-2 border-dashed border-muted-foreground/40 bg-muted/30 hover:border-primary transition flex items-center justify-center mb-4"
+                                            className="relative h-40 cursor-pointer rounded-lg border-2 border-dashed border-muted-foreground/40 bg-muted/30 hover:border-primary transition flex items-center justify-center mb-4"
                                         >
                                             <input
                                                 type="file"
@@ -750,7 +781,7 @@ export default function CreateCertificateMobile() {
                                                         src={imagePreview}
                                                         alt="Preview"
                                                         fill
-                                                        className="object-contain rounded lg"
+                                                        className="object-contain rounded-lg"
                                                     />
                                                     <Button
                                                         size="icon"
@@ -760,6 +791,7 @@ export default function CreateCertificateMobile() {
                                                             e.stopPropagation()
                                                             setImage(null)
                                                             setImagePreview(null)
+                                                            setImageDimensions({ width: 0, height: 0 })
                                                         }}
                                                     >
                                                         <X className="h-3 w-3" />
@@ -768,19 +800,19 @@ export default function CreateCertificateMobile() {
                                             ) : (
                                                 <div className="text-center">
                                                     <UploadCloud className="mx-auto h-8 w-8 text-muted-foreground" />
-                                                    <p className="text-xs text-muted-foreground">Upload background</p>
+                                                    <p className="text-xs text-muted-foreground">Tap to upload</p>
                                                 </div>
                                             )}
                                         </div>
 
                                         <div className="space-y-2">
-                                            <Label>Select Course</Label>
+                                            <Label className="text-sm">Select Course</Label>
                                             <Select
                                                 value={selectedCourse}
                                                 onValueChange={setSelectedCourse}
                                                 disabled={coursesLoading}
                                             >
-                                                <SelectTrigger>
+                                                <SelectTrigger className="h-10">
                                                     <SelectValue placeholder="Choose a course" />
                                                 </SelectTrigger>
                                                 <SelectContent>
@@ -799,75 +831,78 @@ export default function CreateCertificateMobile() {
                             <Button 
                                 variant={activeElement === 'studentId' ? 'default' : 'outline'} 
                                 size="sm"
-                                className="shrink-0"
                                 onClick={() => selectElement('studentId')}
                             >
-                                <Badge className="mr-1 h-4 w-4 p-0">ID</Badge>
                                 Student ID
                             </Button>
                             <Button 
                                 variant={activeElement === 'name' ? 'default' : 'outline'} 
                                 size="sm"
-                                className="shrink-0"
                                 onClick={() => selectElement('name')}
                             >
-                                <Badge className="mr-1 h-4 w-4 p-0">Name</Badge>
-                                Name
+                                Student Name
                             </Button>
                             <Button 
                                 variant={activeElement === 'courseName' ? 'default' : 'outline'} 
                                 size="sm"
-                                className="shrink-0"
                                 onClick={() => selectElement('courseName')}
                             >
-                                <Badge className="mr-1 h-4 w-4 p-0">Course</Badge>
-                                Course
+                                Course Name
                             </Button>
                         </div>
 
                         {activeElement && (
-                            <div className="mt-2 p-2 bg-muted/30 rounded lg">
-                                <div className="flex items-center justify-between mb-2">
-                                    <span className="text-sm font-medium">Selected: {activeElement}</span>
+                            <div className="p-3 bg-muted/30 rounded-lg">
+                                <div className="flex items-center justify-between mb-3">
+                                    <span className="text-sm font-medium capitalize">{activeElement}</span>
                                     <div className="flex gap-1">
-                                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={duplicateElement}>
-                                            <Copy className="h-3 w-3" />
+                                        <Button size="icon" variant="ghost" className="h-8 w-8" onClick={duplicateElement}>
+                                            <Copy className="h-4 w-4" />
                                         </Button>
-                                        <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={deleteElement}>
-                                            <Trash2 className="h-3 w-3" />
+                                        <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={deleteElement}>
+                                            <Trash2 className="h-4 w-4" />
                                         </Button>
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-4 gap-1">
-                                    <Button size="sm" variant="outline" className="h-8" onClick={() => nudgePosition('up')}>
-                                        <ArrowUp className="h-3 w-3" />
+                                
+                                <div className="grid grid-cols-3 gap-2 max-w-[200px] mx-auto">
+                                    <div></div>
+                                    <Button size="default" variant="outline" className="h-10" onClick={() => nudgePosition('up')}>
+                                        <ArrowUp className="h-4 w-4" />
                                     </Button>
-                                    <Button size="sm" variant="outline" className="h-8" onClick={() => nudgePosition('left')}>
-                                        <ArrowLeft className="h-3 w-3" />
+                                    <div></div>
+                                    <Button size="default" variant="outline" className="h-10" onClick={() => nudgePosition('left')}>
+                                        <ArrowLeft className="h-4 w-4" />
                                     </Button>
-                                    <Button size="sm" variant="outline" className="h-8" onClick={() => nudgePosition('down')}>
-                                        <ArrowDown className="h-3 w-3" />
+                                    <Button size="default" variant="outline" className="h-10" onClick={() => nudgePosition('down')}>
+                                        <ArrowDown className="h-4 w-4" />
                                     </Button>
-                                    <Button size="sm" variant="outline" className="h-8" onClick={() => nudgePosition('right')}>
-                                        <ArrowRight className="h-3 w-3" />
+                                    <Button size="default" variant="outline" className="h-10" onClick={() => nudgePosition('right')}>
+                                        <ArrowRight className="h-4 w-4" />
                                     </Button>
                                 </div>
+                            </div>
+                        )}
+
+                        {!activeElement && (
+                            <div className="text-center py-6 text-sm text-muted-foreground">
+                                Tap any element on the canvas to edit
                             </div>
                         )}
                     </TabsContent>
 
                     {/* Style Tab */}
-                    <TabsContent value="style" className="mt-0">
+                    <TabsContent value="style" className="mt-0 p-3 max-h-[45vh] overflow-y-auto">
                         {activeElement ? (
-                            <div className="space-y-3">
+                            <div className="space-y-4">
                                 <div className="flex items-center gap-2">
                                     <Select value={fontFamily} onValueChange={setFontFamily}>
-                                        <SelectTrigger className="flex-1 h-8 text-xs">
+                                        <SelectTrigger className="flex-1 h-10 text-sm">
                                             <SelectValue placeholder="Font" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {fontOptions.slice(0, 8).map(font => (
-                                                <SelectItem key={font} value={font} style={{ fontFamily: font }} className="text-xs">
+                                            {fontOptions.map(font => (
+                                                <SelectItem key={font} value={font} style={{ fontFamily: font }} className="text-sm">
                                                     {font}
                                                 </SelectItem>
                                             ))}
@@ -877,12 +912,12 @@ export default function CreateCertificateMobile() {
                                         type="color"
                                         value={textColor}
                                         onChange={(e) => setTextColor(e.target.value)}
-                                        className="w-8 h-8 p-0.5"
+                                        className="w-10 h-10 p-1"
                                     />
                                 </div>
 
-                                <div className="space-y-1">
-                                    <div className="flex justify-between text-xs">
+                                <div className="space-y-2">
+                                    <div className="flex justify-between text-sm">
                                         <Label>Font Size: {getActiveFontSize()}px</Label>
                                     </div>
                                     <Slider
@@ -891,103 +926,66 @@ export default function CreateCertificateMobile() {
                                         min={12}
                                         max={72}
                                         step={1}
-                                        className="py-1"
                                     />
                                 </div>
 
-                                <div className="space-y-1">
-                                    <div className="flex justify-between text-xs">
-                                        <Label>Width: {getActiveDimensions().width}px</Label>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between text-sm">
+                                        <Label>Position Left: {getActivePosition().left.toFixed(1)}%</Label>
                                     </div>
-                                    <div className="flex gap-1">
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            className="h-6 w-6 p-0"
-                                            onClick={() => updateDimensions('width', getActiveDimensions().width - 10)}
-                                        >
-                                            <Minus className="h-3 w-3" />
-                                        </Button>
-                                        <Slider
-                                            value={[getActiveDimensions().width]}
-                                            onValueChange={(value) => updateDimensions('width', value[0])}
-                                            min={50}
-                                            max={300}
-                                            step={5}
-                                            className="flex-1"
-                                        />
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            className="h-6 w-6 p-0"
-                                            onClick={() => updateDimensions('width', getActiveDimensions().width + 10)}
-                                        >
-                                            <Plus className="h-3 w-3" />
-                                        </Button>
-                                    </div>
+                                    <Slider
+                                        value={[getActivePosition().left]}
+                                        onValueChange={(value) => updatePosition('left', value[0])}
+                                        min={0}
+                                        max={100}
+                                        step={1}
+                                    />
                                 </div>
 
-                                <div className="space-y-1">
-                                    <div className="flex justify-between text-xs">
-                                        <Label>Height: {getActiveDimensions().height}px</Label>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between text-sm">
+                                        <Label>Position Top: {getActivePosition().top.toFixed(1)}%</Label>
                                     </div>
-                                    <div className="flex gap-1">
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            className="h-6 w-6 p-0"
-                                            onClick={() => updateDimensions('height', getActiveDimensions().height - 5)}
-                                        >
-                                            <Minus className="h-3 w-3" />
-                                        </Button>
-                                        <Slider
-                                            value={[getActiveDimensions().height]}
-                                            onValueChange={(value) => updateDimensions('height', value[0])}
-                                            min={30}
-                                            max={150}
-                                            step={5}
-                                            className="flex-1"
-                                        />
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            className="h-6 w-6 p-0"
-                                            onClick={() => updateDimensions('height', getActiveDimensions().height + 5)}
-                                        >
-                                            <Plus className="h-3 w-3" />
-                                        </Button>
-                                    </div>
+                                    <Slider
+                                        value={[getActivePosition().top]}
+                                        onValueChange={(value) => updatePosition('top', value[0])}
+                                        min={0}
+                                        max={100}
+                                        step={1}
+                                    />
                                 </div>
                             </div>
                         ) : (
-                            <div className="text-center py-4 text-sm text-muted-foreground">
+                            <div className="text-center py-8 text-sm text-muted-foreground">
                                 Select an element to style
                             </div>
                         )}
                     </TabsContent>
 
                     {/* Layers Tab */}
-                    <TabsContent value="layers" className="mt-0">
-                        <div className="space-y-1 max-h-40 overflow-y-auto">
+                    <TabsContent value="layers" className="mt-0 p-3 max-h-[45vh] overflow-y-auto">
+                        <div className="space-y-2">
                             {layers.map(layer => (
-                                <div key={layer.id} className="flex items-center justify-between p-2 bg-muted/30 rounded lg">
-                                    <span className="text-sm font-medium">{layer.name}</span>
-                                    <div className="flex gap-1">
+                                <div key={layer.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                                    <span className="text-sm font-medium capitalize">
+                                        {layer.id === 'studentId' ? 'Student ID' : layer.id === 'name' ? 'Student Name' : 'Course Name'}
+                                    </span>
+                                    <div className="flex gap-2">
                                         <Button 
                                             size="icon" 
                                             variant="ghost" 
-                                            className="h-7 w-7"
+                                            className="h-8 w-8"
                                             onClick={() => toggleLayerVisibility(layer.id)}
                                         >
-                                            {layer.visible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                                            {layer.visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                                         </Button>
                                         <Button 
                                             size="icon" 
                                             variant="ghost" 
-                                            className="h-7 w-7"
+                                            className="h-8 w-8"
                                             onClick={() => toggleLayerLock(layer.id)}
                                         >
-                                            {layer.locked ? <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg> : <Move className="h-3 w-3" />}
+                                            {layer.locked ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
                                         </Button>
                                     </div>
                                 </div>
@@ -996,19 +994,20 @@ export default function CreateCertificateMobile() {
                     </TabsContent>
 
                     {/* Export Tab */}
-                    <TabsContent value="export" className="mt-0">
-                        <div className="space-y-2">
-                            <div className="flex items-center justify-between p-2 bg-muted/30 rounded lg">
+                    <TabsContent value="export" className="mt-0 p-3 max-h-[45vh] overflow-y-auto">
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                                 <div>
-                                    <p className="text-xs font-medium">Soft Delete</p>
-                                    <p className="text-[10px] text-muted-foreground">Mark template as deleted</p>
+                                    <p className="text-sm font-medium">Soft Delete</p>
+                                    <p className="text-xs text-muted-foreground">Mark template as deleted</p>
                                 </div>
                                 <Switch checked={isDelete} onCheckedChange={setIsDelete} />
                             </div>
+                            
                             <Button
                                 onClick={handleSubmit}
                                 disabled={loading || !selectedCourse || !image}
-                                className="w-full"
+                                className="w-full h-11"
                                 size="default"
                             >
                                 {loading ? (

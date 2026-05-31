@@ -53,6 +53,7 @@ import {
 } from 'lucide-react'
 import useFetchAssignments from '@/app/default/custom-component/useFetchAssignment'
 import EditAssignment from './EditAssignment'
+import Link from 'next/link'
 
 /* -------------------- Types -------------------- */
 
@@ -187,6 +188,12 @@ export default function AllAssignment() {
 
   return (
     <div className="space-y-6">
+    <div className="flex items-center justify-between">
+                    <h2 className="text-2xl font-bold">Assignments</h2>
+                    <Button asChild>
+                      <Link href="/dashboard/assignment/create">Add Assignment</Link>
+                    </Button>
+                  </div>
       {/* Edit Assignment Dialog */}
       {selectedAssignment && (
         <EditAssignment

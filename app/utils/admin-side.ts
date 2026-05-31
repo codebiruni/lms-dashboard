@@ -30,25 +30,6 @@ export const adminNavItems = [
       { title: "Quiz Submissions", url: "/dashboard/quiz-submission" },
     ],
   },
-
-  /* =====================================================
-     ACADEMIC — CREATE
-  ===================================================== */
-  {
-    title: "Create Content",
-    url: "#",
-    icon: PlusCircle,
-    items: [
-      { title: "Create Course", url: "/dashboard/course/create" },
-      { title: "Create Section", url: "/dashboard/course-section/create" },
-      { title: "Create Lesson", url: "/dashboard/lesson/create" },
-      { title: "Create Video", url: "/dashboard/videos/create" },
-      { title: "Create Assignment", url: "/dashboard/assignment/create" },
-      { title: "Create Quiz", url: "/dashboard/quiz/create" },
-      { title: "Create Quiz Submission", url: "/dashboard/quiz-submission/create" },
-    ],
-  },
-
   /* =====================================================
      CLASSES & DELIVERY
   ===================================================== */
@@ -60,25 +41,9 @@ export const adminNavItems = [
       { title: "Live Classes", url: "/dashboard/live-class" },
       { title: "Meetings", url: "/dashboard/meeting" },
       { title: "Recordings", url: "/dashboard/recording" },
-      { title: "Videos", url: "/dashboard/videos" },
+      // { title: "Videos", url: "/dashboard/videos" },
     ],
   },
-
-  /* =====================================================
-     CLASS CREATION
-  ===================================================== */
-  {
-    title: "Schedule & Upload",
-    url: "#",
-    icon: ClipboardList,
-    items: [
-      { title: "Create Live Class", url: "/dashboard/live-class/create" },
-      { title: "Create Meeting", url: "/dashboard/meeting/create" },
-      { title: "Upload Recording", url: "/dashboard/recording/create" },
-      { title: "Upload Video", url: "/dashboard/videos/create" },
-    ],
-  },
-
   /* =====================================================
      PROGRESS & ATTENDANCE
   ===================================================== */
@@ -92,21 +57,6 @@ export const adminNavItems = [
       { title: "Enrollment", url: "/dashboard/enrollment" },
     ],
   },
-
-  /* =====================================================
-     PROGRESS — CREATE / UPDATE
-  ===================================================== */
-  {
-    title: "Update Records",
-    url: "#",
-    icon: PlusCircle,
-    items: [
-      { title: "Create Attendance", url: "/dashboard/attendance/create" },
-      { title: "Create Progress", url: "/dashboard/course-progress/create" },
-      { title: "Create Enrollment", url: "/dashboard/enrollment/create" },
-    ],
-  },
-
   /* =====================================================
      CATEGORIES & CERTIFICATION
   ===================================================== */
@@ -121,22 +71,6 @@ export const adminNavItems = [
       { title: "Certificates", url: "/dashboard/certificate" },
     ],
   },
-
-  /* =====================================================
-     STRUCTURE — CREATE
-  ===================================================== */
-  {
-    title: "Build Structure",
-    url: "#",
-    icon: Award,
-    items: [
-      { title: "Create Category", url: "/dashboard/category/create" },
-      { title: "Create Sub Category", url: "/dashboard/sub-category/create" },
-      { title: "Create Certificate Template", url: "/dashboard/certificate-template/create" },
-      { title: "Create Certificate", url: "/dashboard/certificate/create" },
-    ],
-  },
-
   /* =====================================================
      ENGAGEMENT & FEEDBACK
   ===================================================== */
@@ -151,22 +85,6 @@ export const adminNavItems = [
       { title: "Questions", url: "/dashboard/question" },
     ],
   },
-
-  /* =====================================================
-     ENGAGEMENT — CREATE
-  ===================================================== */
-  {
-    title: "Respond & Create",
-    url: "#",
-    icon: HelpCircle,
-    items: [
-      { title: "Create Lead", url: "/dashboard/lead/create" },
-      { title: "Create Follow Up", url: "/dashboard/follow-up/create" },
-      { title: "Create Review", url: "/dashboard/review/create" },
-      { title: "Create Question", url: "/dashboard/question/create" },
-    ],
-  },
-
   /* =====================================================
      USER MANAGEMENT
   ===================================================== */
@@ -179,21 +97,6 @@ export const adminNavItems = [
       { title: "Instructors", url: "/dashboard/instructor" },
       { title: "Staff", url: "/dashboard/staff" },
       { title: "Users", url: "/dashboard/user" },
-    ],
-  },
-
-  /* =====================================================
-     USER — CREATE
-  ===================================================== */
-  {
-    title: "Add Users",
-    url: "#",
-    icon: PlusCircle,
-    items: [
-      { title: "Create Student", url: "/dashboard/student/create" },
-      { title: "Create Instructor", url: "/dashboard/instructor/create" },
-      { title: "Create Staff", url: "/dashboard/staff/create" },
-      { title: "Create User", url: "/dashboard/user/create" },
     ],
   },
   /* =====================================================
@@ -233,6 +136,93 @@ export const adminNavItems = [
     icon: Settings2,
     items: [
       { title: "Landing Page Data", url: "/dashboard/page-form-data" }
+    ],
+  },
+  /* =====================================================
+     ACADEMIC — CREATE
+  ===================================================== */
+  {
+    title: "Create Content",
+    url: "#",
+    icon: PlusCircle,
+    items: [
+      { title: "Create Course", url: "/dashboard/course/create" },
+      { title: "Create Section", url: "/dashboard/course-section/create" },
+      { title: "Create Lesson", url: "/dashboard/lesson/create" },
+      // { title: "Create Video", url: "/dashboard/videos/create" },
+      { title: "Create Assignment", url: "/dashboard/assignment/create" },
+      { title: "Create Quiz", url: "/dashboard/quiz/create" },
+      { title: "Create Quiz Submission", url: "/dashboard/quiz-submission/create" },
+    ],
+  },
+  
+  /* =====================================================
+     CLASS CREATION
+  ===================================================== */
+  {
+    title: "Schedule & Upload",
+    url: "#",
+    icon: ClipboardList,
+    items: [
+      { title: "Create Live Class", url: "/dashboard/live-class/create" },
+      { title: "Create Meeting", url: "/dashboard/meeting/create" },
+      { title: "Upload Recording", url: "/dashboard/recording/create" },
+      // { title: "Upload Video", url: "/dashboard/videos/create" },
+    ],
+  },
+    /* =====================================================
+     PROGRESS — CREATE / UPDATE
+  ===================================================== */
+  {
+    title: "Update Records",
+    url: "#",
+    icon: PlusCircle,
+    items: [
+      { title: "Create Attendance", url: "/dashboard/attendance/create" },
+      { title: "Create Progress", url: "/dashboard/course-progress/create" },
+      { title: "Create Enrollment", url: "/dashboard/enrollment/create" },
+    ],
+  },
+  /* =====================================================
+     STRUCTURE — CREATE
+  ===================================================== */
+  {
+    title: "Build Structure",
+    url: "#",
+    icon: Award,
+    items: [
+      { title: "Create Category", url: "/dashboard/category/create" },
+      { title: "Create Sub Category", url: "/dashboard/sub-category/create" },
+      { title: "Create Certificate Template", url: "/dashboard/certificate-template/create" },
+      { title: "Create Certificate", url: "/dashboard/certificate/create" },
+    ],
+  },
+   /* =====================================================
+     ENGAGEMENT — CREATE
+  ===================================================== */
+  {
+    title: "Respond & Create",
+    url: "#",
+    icon: HelpCircle,
+    items: [
+      { title: "Create Lead", url: "/dashboard/lead/create" },
+      { title: "Create Follow Up", url: "/dashboard/follow-up/create" },
+      { title: "Create Review", url: "/dashboard/review/create" },
+      { title: "Create Question", url: "/dashboard/question/create" },
+    ],
+  },
+   /* =====================================================
+     USER — CREATE
+  ===================================================== */
+  {
+    title: "Add Users",
+    url: "#",
+    icon: PlusCircle,
+    items: [
+      { title: "Create Student", url: "/dashboard/student/create" },
+      { title: "Create Instructor", url: "/dashboard/instructor/create" },
+      { title: "Create Staff", url: "/dashboard/staff/create" },
+      { title: "Create User", url: "/dashboard/user/create" },
     ],
   },
 ];

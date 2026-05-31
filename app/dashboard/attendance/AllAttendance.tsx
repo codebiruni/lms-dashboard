@@ -53,6 +53,7 @@ import {
 } from 'lucide-react'
 
 import EditAttendance from './EditAttendance'
+import Link from 'next/link'
 
 /* -------------------- Types -------------------- */
 
@@ -208,6 +209,14 @@ export default function AllAttendance() {
   /* ---------------- UI ---------------- */
   return (
     <div className="space-y-6 w-full">
+
+      <div className="flex items-center justify-between">
+                            <h2 className="text-2xl font-bold">Attendance</h2>
+                            <Button asChild>
+                              <Link href="/dashboard/attendance/create">Add Attendance</Link>
+                            </Button>
+                          </div>
+
       {/* Edit Attendance Dialog */}
       {selectedAttendance && (
         <EditAttendance

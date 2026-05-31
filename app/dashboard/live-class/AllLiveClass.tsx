@@ -215,6 +215,14 @@ export default function AllLiveClass() {
 
   return (
     <div className="space-y-6 p-4">
+
+      <div className="flex items-center justify-between">
+                      <h2 className="text-2xl font-bold">Live Classes</h2>
+                      <Button asChild>
+                        <Link href="/dashboard/live-class/create">Add Live Class</Link>
+                      </Button>
+                    </div>
+
       {/* Edit Live Class Dialog */}
       {selectedLiveClass && (
         <EditLiveClass

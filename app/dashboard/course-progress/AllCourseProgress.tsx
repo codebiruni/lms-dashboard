@@ -53,6 +53,7 @@ import {
 } from 'lucide-react'
 
 import EditCourseProgress from './EditCourseProgress'
+import Link from 'next/link'
 
 /* -------------------- Types -------------------- */
 
@@ -184,6 +185,15 @@ export default function AllCourseProgress() {
   /* ---------------- UI ---------------- */
   return (
     <div className="space-y-6 w-full">
+
+      <div className="flex items-center justify-between">
+                            <h2 className="text-2xl font-bold">Course Progress</h2>
+                            <Button asChild>
+                              <Link href="/dashboard/course-progress/create">Add Course Progress</Link>
+                            </Button>
+                          </div>
+
+
       {/* Edit Course Progress Dialog */}
       {selectedProgress && (
         <EditCourseProgress

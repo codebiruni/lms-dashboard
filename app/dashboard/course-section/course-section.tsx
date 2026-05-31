@@ -48,6 +48,7 @@ import {
 } from 'lucide-react'
 import useFetchCourseSections from '@/app/default/custom-component/useCouesSection'
 import EditCourseSection from './EditCourseSection'
+import Link from 'next/link'
 
 /* -------------------- Constants -------------------- */
 
@@ -159,6 +160,12 @@ export default function CourseSection() {
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-between">
+                      <h2 className="text-2xl font-bold">Course Sections</h2>
+                      <Button asChild>
+                        <Link href="/dashboard/course-section/create">Add Course Section</Link>
+                      </Button>
+                    </div>
       {/* Edit Course Section Dialog */}
       {selectedSection && (
         <EditCourseSection

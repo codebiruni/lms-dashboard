@@ -53,6 +53,7 @@ import {
 
 import useFetchQuiz from '@/app/default/custom-component/useFetchQuiz'
 import EditQuiz from './EditQuiz'
+import Link from 'next/link'
 
 /* -------------------- Types -------------------- */
 
@@ -181,6 +182,14 @@ export default function AllQuiz() {
 
   return (
     <div className="space-y-6">
+
+      <div className="flex items-center justify-between">
+                      <h2 className="text-2xl font-bold">Quizzes</h2>
+                      <Button asChild>
+                        <Link href="/dashboard/quiz/create">Add Quiz</Link>
+                      </Button>
+                    </div>
+
       {/* Edit Quiz Dialog */}
       {selectedQuiz && (
         <EditQuiz

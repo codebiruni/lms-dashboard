@@ -156,7 +156,7 @@ export default function AllCertificateTemplate() {
 
     // Handle create new
     const handleCreateNew = () => {
-        router.push('/certificate-templates/create')
+        router.push('/dashboard/certificate-template/create')
     }
 
     // Preview image

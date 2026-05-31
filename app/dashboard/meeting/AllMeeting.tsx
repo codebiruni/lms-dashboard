@@ -198,6 +198,15 @@ export default function AllMeeting() {
   /* ---------------- UI ---------------- */
   return (
     <div className="space-y-6 p-4">
+
+      <div className="flex items-center justify-between">
+                            <h2 className="text-2xl font-bold">Meetings</h2>
+                            <Button asChild>
+                              <Link href="/dashboard/meeting/create">Add Meeting</Link>
+                            </Button>
+                          </div>
+
+
       {/* Edit Meeting Dialog */}
       {selectedMeeting && (
         <EditMeeting

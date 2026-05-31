@@ -51,6 +51,7 @@ import {
   BarChart,
 } from 'lucide-react'
 import EditQuizSubmission from './EditQuizSubmission'
+import Link from 'next/link'
 
 
 /* -------------------- Types -------------------- */
@@ -177,6 +178,14 @@ export default function AllQuizSubmission() {
 
   return (
     <div className="space-y-6">
+
+<div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold">Quiz Submissions</h2>
+                <Button asChild>
+                  <Link href="/dashboard/quiz-submission/create">Add Quiz Submission</Link>
+                </Button>
+              </div>
+
       {/* Edit Quiz Submission Dialog */}
       {selectedSubmission && (
         <EditQuizSubmission

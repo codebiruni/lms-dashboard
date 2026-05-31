@@ -219,6 +219,15 @@ export default function AllEnrollment() {
   /* ---------------- UI ---------------- */
   return (
     <div className="space-y-6 p-4">
+
+
+<div className="flex items-center justify-between">
+                      <h2 className="text-2xl font-bold">Enrollments</h2>
+                      <Button asChild>
+                        <Link href="/dashboard/enrollment/create">Add Enrollment</Link>
+                      </Button>
+                    </div>
+
       {/* Edit Enrollment Dialog */}
       {selectedEnrollment && (
         <EditEnrollment

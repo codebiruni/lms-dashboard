@@ -51,6 +51,7 @@ import {
 import useFetchCourses from '@/app/default/custom-component/useFeatchCourse'
 import EditCourse from './EditCourse'
 import { Skeleton } from '@/components/ui/skeleton'
+import Link from 'next/link'
 
 /* -------------------- Constants -------------------- */
 
@@ -209,6 +210,12 @@ export default function AllCourse() {
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold">Courses</h2>
+                <Button asChild>
+                  <Link href="/dashboard/course/create">Add Course</Link>
+                </Button>
+              </div>
       {/* Edit Course Dialog */}
       {selectedCourse && (
         <EditCourse
