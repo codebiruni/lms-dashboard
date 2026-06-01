@@ -82,7 +82,7 @@ export const adminNavItems = [
       { title: "Leads", url: "/dashboard/lead" },
       { title: "Follow Ups", url: "/dashboard/follow-up" },
       { title: "Reviews", url: "/dashboard/review" },
-      { title: "Questions", url: "/dashboard/question" },
+      // { title: "Questions", url: "/dashboard/question" },
     ],
   },
   /* =====================================================
@@ -208,7 +208,7 @@ export const adminNavItems = [
       { title: "Create Lead", url: "/dashboard/lead/create" },
       { title: "Create Follow Up", url: "/dashboard/follow-up/create" },
       { title: "Create Review", url: "/dashboard/review/create" },
-      { title: "Create Question", url: "/dashboard/question/create" },
+      // { title: "Create Question", url: "/dashboard/question/create" },
     ],
   },
    /* =====================================================

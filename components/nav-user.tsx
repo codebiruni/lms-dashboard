@@ -106,18 +106,13 @@ export function NavUser({
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <Link href="/dashboard-home/change-password">
+              <Link href="/dashboard/change-password">
                 <DropdownMenuItem>
                   <KeySquare />
                   Change Password
                 </DropdownMenuItem>
               </Link>
-              <Link href="/dashboard-home/settings">
-                <DropdownMenuItem>
-                  <Settings />
-                  Settings
-                </DropdownMenuItem>
-              </Link>
+             
               <Link href="https://www.codebiruni.com/pages/company/contact" target="_blank">
                 <DropdownMenuItem>
                   <HelpCircle />

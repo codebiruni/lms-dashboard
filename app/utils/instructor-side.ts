@@ -27,20 +27,7 @@ export const instructorNavItems = [
     ],
   },
 
-  /* =====================================================
-     CREATE CONTENT
-  ===================================================== */
-  {
-    title: "Create Content",
-    url: "#",
-    icon: PlusCircle,
-    items: [
-      { title: "Create Section", url: "/instructor/course-section/create" },
-      { title: "Create Lesson", url: "/instructor/lesson/create" },
-      { title: "Create Assignment", url: "/instructor/assignment/create" },
-      { title: "Create Quiz", url: "/instructor/quiz/create" },
-    ],
-  },
+ 
 
   /* =====================================================
      CLASSES
@@ -56,19 +43,7 @@ export const instructorNavItems = [
     ],
   },
 
-  /* =====================================================
-     SCHEDULE
-  ===================================================== */
-  {
-    title: "Schedule",
-    url: "#",
-    icon: ClipboardList,
-    items: [
-      { title: "Create Live Class", url: "/instructor/live-class/create" },
-      { title: "Create Meeting", url: "/instructor/meeting/create" },
-      { title: "Upload Recording", url: "/instructor/recording/create" },
-    ],
-  },
+  
 
   /* =====================================================
      STUDENT PROGRESS
@@ -93,7 +68,7 @@ export const instructorNavItems = [
     icon: MessageSquare,
     items: [
       { title: "Reviews", url: "/instructor/review" },
-      { title: "Questions", url: "/instructor/question" },
+      // { title: "Questions", url: "/instructor/question" },
     ],
   },
 
@@ -105,7 +80,7 @@ export const instructorNavItems = [
     url: "#",
     icon: HelpCircle,
     items: [
-      { title: "Answer Questions", url: "/instructor/question/respond" },
+      // { title: "Answer Questions", url: "/instructor/question/respond" },
       { title: "Reply Reviews", url: "/instructor/review/respond" },
     ],
   },
@@ -120,6 +95,33 @@ export const instructorNavItems = [
     items: [
       { title: "Profile Settings", url: "/instructor/settings/profile" },
       { title: "Account Settings", url: "/instructor/settings/account" },
+    ],
+  },
+   /* =====================================================
+     CREATE CONTENT
+  ===================================================== */
+  {
+    title: "Create Content",
+    url: "#",
+    icon: PlusCircle,
+    items: [
+      { title: "Create Section", url: "/instructor/course-section/create" },
+      { title: "Create Lesson", url: "/instructor/lesson/create" },
+      { title: "Create Assignment", url: "/instructor/assignment/create" },
+      { title: "Create Quiz", url: "/instructor/quiz/create" },
+    ],
+  },
+  /* =====================================================
+     SCHEDULE
+  ===================================================== */
+  {
+    title: "Schedule",
+    url: "#",
+    icon: ClipboardList,
+    items: [
+      { title: "Create Live Class", url: "/instructor/live-class/create" },
+      { title: "Create Meeting", url: "/instructor/meeting/create" },
+      { title: "Upload Recording", url: "/instructor/recording/create" },
     ],
   },
 ];
