@@ -106,7 +106,7 @@ export function NavUser({
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <Link href="/dashboard/change-password">
+              <Link href={(UserData?.role == "admin" || UserData?.role == "super-admin") ? "/dashboard/change-password" : "/instructor/change-password"}>
                 <DropdownMenuItem>
                   <KeySquare />
                   Change Password
