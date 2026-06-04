@@ -119,17 +119,17 @@ export const adminNavItems = [
   /* =====================================================
      SYSTEM
   ===================================================== */
-  // {
-  //   title: "System",
-  //   url: "#",
-  //   icon: Settings2,
-  //   items: [
-  //     { title: "Email", url: "/dashboard/system/email" },
-  //     { title: "SMS", url: "/dashboard/system/sms" },
-  //     { title: "SSL Payment ", url: "/dashboard/system/ssl-payment" },
-  //     { title: "Web Core", url: "/dashboard/system/web-core" },
-  //   ],
-  // },
+  {
+    title: "System",
+    url: "#",
+    icon: Settings2,
+    items: [
+      { title: "Email", url: "/dashboard/system/email" },
+      { title: "SMS", url: "/dashboard/system/sms" },
+      { title: "SSL Payment ", url: "/dashboard/system/ssl-payment" },
+      { title: "Web Core", url: "/dashboard/system/web-core" },
+    ],
+  },
   {
     title: "Data Management",
     url: "#",
